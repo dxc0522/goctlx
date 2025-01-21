@@ -8,8 +8,8 @@
       "home": "{{.global.home}}",
       "remote": "{{.global.remote}}",
       "branch": "{{.global.branch}}",
-      "api": "The api file",
-      "dir": "The target dir",
+      "api": "The api file. default is [folder name].api",
+      "dir": "The target dir. default is current folder",
       "dart": {
         "short": "Generate dart files for provided api in api file",
         "dir": "{{.goctl.api.dir}}",
