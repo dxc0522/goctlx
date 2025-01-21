@@ -60,10 +60,20 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 		pathx.RegisterGoctlHome(home)
 	}
 	if len(apiFile) == 0 {
-		return errors.New("missing -api")
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return errors.New("missing -api")
+		}
+		folderName := filepath.Base(currentDir)
+		apiFile = fmt.Sprintf("%s.api", folderName)
+		apiFilePath := filepath.Join(currentDir, apiFile)
+		if _, err := os.Stat(apiFilePath); os.IsNotExist(err) {
+			return errors.New("missing -api")
+		}
 	}
 	if len(dir) == 0 {
-		return errors.New("missing -dir")
+		dir = "."
+		//return errors.New("missing -dir")
 	}
 
 	return DoGenProject(apiFile, dir, namingStyle)

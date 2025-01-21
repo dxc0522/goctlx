@@ -2,12 +2,9 @@ package api
 
 import (
 	"github.com/dxc0522/goctlx/api/apigen"
-	"github.com/dxc0522/goctlx/api/dartgen"
 	"github.com/dxc0522/goctlx/api/docgen"
 	"github.com/dxc0522/goctlx/api/format"
 	"github.com/dxc0522/goctlx/api/gogen"
-	"github.com/dxc0522/goctlx/api/javagen"
-	"github.com/dxc0522/goctlx/api/ktgen"
 	"github.com/dxc0522/goctlx/api/new"
 	"github.com/dxc0522/goctlx/api/tsgen"
 	"github.com/dxc0522/goctlx/api/validate"
@@ -20,15 +17,12 @@ import (
 var (
 	// Cmd describes an api command.
 	Cmd       = cobrax.NewCommand("api", cobrax.WithRunE(apigen.CreateApiTemplate))
-	dartCmd   = cobrax.NewCommand("dart", cobrax.WithRunE(dartgen.DartCommand))
 	docCmd    = cobrax.NewCommand("doc", cobrax.WithRunE(docgen.DocCommand))
 	formatCmd = cobrax.NewCommand("format", cobrax.WithRunE(format.GoFormatApi))
 	goCmd     = cobrax.NewCommand("go", cobrax.WithRunE(gogen.GoCommand))
 	newCmd    = cobrax.NewCommand("new", cobrax.WithRunE(new.CreateServiceCommand),
 		cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
 	validateCmd = cobrax.NewCommand("validate", cobrax.WithRunE(validate.GoValidateApi))
-	javaCmd     = cobrax.NewCommand("java", cobrax.WithRunE(javagen.JavaCommand), cobrax.WithHidden())
-	ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
 	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
 )
@@ -36,28 +30,18 @@ var (
 func init() {
 	var (
 		apiCmdFlags      = Cmd.Flags()
-		dartCmdFlags     = dartCmd.Flags()
 		docCmdFlags      = docCmd.Flags()
 		formatCmdFlags   = formatCmd.Flags()
 		goCmdFlags       = goCmd.Flags()
-		javaCmdFlags     = javaCmd.Flags()
-		ktCmdFlags       = ktCmd.Flags()
 		newCmdFlags      = newCmd.Flags()
 		pluginCmdFlags   = pluginCmd.Flags()
 		tsCmdFlags       = tsCmd.Flags()
 		validateCmdFlags = validateCmd.Flags()
 	)
-
 	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
 	apiCmdFlags.StringVar(&apigen.VarStringHome, "home")
 	apiCmdFlags.StringVar(&apigen.VarStringRemote, "remote")
 	apiCmdFlags.StringVar(&apigen.VarStringBranch, "branch")
-
-	dartCmdFlags.StringVar(&dartgen.VarStringDir, "dir")
-	dartCmdFlags.StringVar(&dartgen.VarStringAPI, "api")
-	dartCmdFlags.BoolVar(&dartgen.VarStringLegacy, "legacy")
-	dartCmdFlags.StringVar(&dartgen.VarStringHostname, "hostname")
-	dartCmdFlags.StringVar(&dartgen.VarStringScheme, "scheme")
 
 	docCmdFlags.StringVar(&docgen.VarStringDir, "dir")
 	docCmdFlags.StringVar(&docgen.VarStringOutput, "o")
@@ -73,13 +57,6 @@ func init() {
 	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
 	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")
 	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
-
-	javaCmdFlags.StringVar(&javagen.VarStringDir, "dir")
-	javaCmdFlags.StringVar(&javagen.VarStringAPI, "api")
-
-	ktCmdFlags.StringVar(&ktgen.VarStringDir, "dir")
-	ktCmdFlags.StringVar(&ktgen.VarStringAPI, "api")
-	ktCmdFlags.StringVar(&ktgen.VarStringPKG, "pkg")
 
 	newCmdFlags.StringVar(&new.VarStringHome, "home")
 	newCmdFlags.StringVar(&new.VarStringRemote, "remote")
@@ -97,7 +74,6 @@ func init() {
 	tsCmdFlags.BoolVar(&tsgen.VarBoolUnWrap, "unwrap")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
-
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd)
+	Cmd.AddCommand(docCmd, formatCmd, goCmd, newCmd, pluginCmd, tsCmd, validateCmd)
 }
