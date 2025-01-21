@@ -3,8 +3,8 @@ package ast
 import (
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/dxc0522/goctlx/pkg/parser/api/token"
+	"github.com/dxc0522/goctlx/util"
 )
 
 // CommentGroup represents a list of comments.

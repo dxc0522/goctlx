@@ -5,20 +5,20 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/model/sql/command/migrationnotes"
+	"github.com/dxc0522/goctlx/model/sql/gen"
+	"github.com/dxc0522/goctlx/model/sql/model"
+	"github.com/dxc0522/goctlx/model/sql/util"
+	file "github.com/dxc0522/goctlx/util"
+	"github.com/dxc0522/goctlx/util/console"
+	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command/migrationnotes"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
-	file "github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var (

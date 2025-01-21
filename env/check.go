@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dxc0522/goctlx/pkg/env"
+	"github.com/dxc0522/goctlx/pkg/protoc"
+	"github.com/dxc0522/goctlx/pkg/protocgengo"
+	"github.com/dxc0522/goctlx/pkg/protocgengogrpc"
+	"github.com/dxc0522/goctlx/util/console"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protoc"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengo"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengogrpc"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
 
 type bin struct {

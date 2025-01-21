@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dxc0522/goctlx/api/parser"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 )
 
 var (

@@ -7,14 +7,14 @@ import (
 	"sort"
 	"strings"
 
+	conf "github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/rpc/parser"
+	"github.com/dxc0522/goctlx/util"
+	"github.com/dxc0522/goctlx/util/format"
+	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/dxc0522/goctlx/util/stringx"
 	"github.com/emicklei/proto"
 	"github.com/zeromicro/go-zero/core/collection"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const (

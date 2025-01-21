@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/dxc0522/goctlx/util/ctx"
+	"github.com/dxc0522/goctlx/util/pathx"
 	"gopkg.in/yaml.v2"
 )
 

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dxc0522/goctlx/internal/cobrax"
+	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var (

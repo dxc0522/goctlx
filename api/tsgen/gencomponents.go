@@ -6,10 +6,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/dxc0522/goctlx/api/spec"
+	apiutil "github.com/dxc0522/goctlx/api/util"
+	"github.com/dxc0522/goctlx/internal/version"
+	"github.com/dxc0522/goctlx/util/pathx"
 )
 
 //go:embed components.tpl

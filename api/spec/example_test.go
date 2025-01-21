@@ -3,7 +3,7 @@ package spec_test
 import (
 	"fmt"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/dxc0522/goctlx/api/spec"
 )
 
 func ExampleMember_GetEnumOptions() {

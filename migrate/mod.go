@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/dxc0522/goctlx/rpc/execx"
+	"github.com/dxc0522/goctlx/util/console"
+	"github.com/dxc0522/goctlx/util/ctx"
 	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 )
 
 const (

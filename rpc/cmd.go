@@ -1,10 +1,10 @@
 package rpc
 
 import (
+	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/internal/cobrax"
+	"github.com/dxc0522/goctlx/rpc/cli"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 )
 
 var (

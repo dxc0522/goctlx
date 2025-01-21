@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	"github.com/dxc0522/goctlx/util"
+	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/dxc0522/goctlx/util/stringx"
 )
 
 //go:embed rpc.tpl

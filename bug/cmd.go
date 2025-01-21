@@ -1,8 +1,8 @@
 package bug
 
 import (
+	"github.com/dxc0522/goctlx/internal/cobrax"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 )
 
 // Cmd describes a bug command.

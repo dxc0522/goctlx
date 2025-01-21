@@ -3,8 +3,8 @@ package ktgen
 import (
 	"errors"
 
+	"github.com/dxc0522/goctlx/api/parser"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 )
 
 var (
