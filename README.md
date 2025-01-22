@@ -4,9 +4,15 @@
 
 go install github.com/dxc0522/goctlx@latest
 
-## update proxy package
+## 差异
 
-访问 https://proxy.golang.org/github.com/dxc0522/goctlx/@v/v1.0.2.info
+修改逻辑及部分页面结构
+剔除单独的context设置
+
+### api
+
+* 生成api以当前父级文件夹的名称读取.api文件
+* 导出文件夹默认为当前文件夹
 
 ## document
 

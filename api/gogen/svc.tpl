@@ -9,9 +9,9 @@ type ServiceContext struct {
 	{{.middleware}}
 }
 
-func NewServiceContext(c {{.config}}) *ServiceContext {
+func NewServiceContext(c {{.config}}) (*ServiceContext, error) {
 	return &ServiceContext{
 		Config: c,
 		{{.middlewareAssignment}}
-	}
+	}, nil
 }

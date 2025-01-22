@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"path"
 	"strconv"
 	"strings"
 
@@ -12,16 +11,37 @@ import (
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/dxc0522/goctlx/vars"
 )
 
 //go:embed logic.tpl
 var logicTemplate string
 
+//go:embed default-logic.tpl
+var defaultLogicTemplate string
+
 func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+	//generate default logic file
+	imports := fmt.Sprintf("\"%s\"", pathx.JoinPackages(rootPkg, contextDir))
+	logicName := strings.Title(api.Service.Name + "Logic")
+	err := genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          logicDir,
+		filename:        logicDir + ".go",
+		templateName:    "logicDefaultTemplate",
+		category:        category,
+		templateFile:    defaultLogicTemplateFile,
+		builtinTemplate: defaultLogicTemplate,
+		data: map[string]any{
+			"logic":   logicName,
+			"imports": imports,
+		},
+	})
+	if err != nil {
+		return err
+	}
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, logicName, r)
 			if err != nil {
 				return err
 			}
@@ -30,7 +50,7 @@ func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	return nil
 }
 
-func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -53,19 +73,18 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
 	}
 
-	subDir := getLogicFolderPath(group, route)
 	return genFile(fileGenConfig{
 		dir:             dir,
-		subdir:          subDir,
+		subdir:          logicDir,
 		filename:        goFile + ".go",
 		templateName:    "logicTemplate",
 		category:        category,
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
 		data: map[string]any{
-			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
+			"pkgName":      logicDir,
 			"imports":      imports,
-			"logic":        strings.Title(logic),
+			"logic":        logicName,
 			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
 			"responseType": responseString,
 			"returnString": returnString,
@@ -76,27 +95,11 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	})
 }
 
-func getLogicFolderPath(group spec.Group, route spec.Route) string {
-	folder := route.GetAnnotation(groupProperty)
-	if len(folder) == 0 {
-		folder = group.GetAnnotation(groupProperty)
-		if len(folder) == 0 {
-			return logicDir
-		}
-	}
-	folder = strings.TrimPrefix(folder, "/")
-	folder = strings.TrimSuffix(folder, "/")
-	return path.Join(logicDir, folder)
-}
-
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`+"\n")
-	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }
 

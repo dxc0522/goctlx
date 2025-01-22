@@ -11,7 +11,6 @@ import (
 	"github.com/dxc0522/goctlx/api/spec"
 	apiutil "github.com/dxc0522/goctlx/api/util"
 	"github.com/dxc0522/goctlx/config"
-	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/format"
 )
@@ -50,7 +49,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		return err
 	}
 
-	typeFilename = typeFilename + ".go"
+	typeFilename = typeFilename + "_gen.go"
 	filename := path.Join(dir, typesDir, typeFilename)
 	os.Remove(filename)
 
@@ -65,7 +64,6 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]any{
 			"types":        val,
 			"containsTime": false,
-			"version":      version.BuildVersion,
 		},
 	})
 }
