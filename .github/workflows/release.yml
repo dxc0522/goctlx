@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,7 +36,5 @@ jobs:
 
       - name: Refresh Proxy Go Package
         run: |
-          echo "Repository name: ${{ github.repository }}"
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "Tag name: $TAG_NAME"
           curl -v https://proxy.golang.org/${{ github.repository }}/goctlx/@v/$TAG_NAME.info

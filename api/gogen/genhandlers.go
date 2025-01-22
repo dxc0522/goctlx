@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"path"
 	"strings"
 
 	"github.com/dxc0522/goctlx/api/spec"
@@ -13,20 +12,11 @@ import (
 	"github.com/dxc0522/goctlx/util/pathx"
 )
 
-const defaultLogicPackage = "logic"
-
 //go:embed handler.tpl
 var handlerTemplate string
 
-func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
-	handlerPath := getHandlerFolderPath(group, route)
-	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
-	logicName := defaultLogicPackage
-	if handlerPath != handlerDir {
-		handler = strings.Title(handler)
-		logicName = pkgName
-	}
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, handler)
 	if err != nil {
 		return err
@@ -34,19 +24,19 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 
 	return genFile(fileGenConfig{
 		dir:             dir,
-		subdir:          getHandlerFolderPath(group, route),
-		filename:        filename + ".go",
+		subdir:          handlerDir,
+		filename:        filename + "_gen.go",
 		templateName:    "handlerTemplate",
 		category:        category,
 		templateFile:    handlerTemplateFile,
 		builtinTemplate: handlerTemplate,
 		data: map[string]any{
-			"PkgName":        pkgName,
-			"ImportPackages": genHandlerImports(group, route, rootPkg),
-			"HandlerName":    handler,
+			"PkgName":        handlerDir,
+			"ImportPackages": genHandlerImports(route, rootPkg),
+			"HandlerName":    strings.Title(handler),
 			"RequestType":    util.Title(route.RequestTypeName()),
-			"LogicName":      logicName,
-			"LogicType":      strings.Title(getLogicName(route)),
+			"LogicName":      logicDir,
+			"LogicType":      strings.Title(api.Service.Name + "Logic"),
 			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
 			"HasResp":        len(route.ResponseTypeName()) > 0,
 			"HasRequest":     len(route.RequestTypeName()) > 0,
@@ -59,7 +49,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
+			if err := genHandler(dir, rootPkg, cfg, api, group, route); err != nil {
 				return err
 			}
 		}
@@ -68,9 +58,9 @@ func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) err
 	return nil
 }
 
-func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
+func genHandlerImports(route spec.Route, parentPkg string) string {
 	imports := []string{
-		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))),
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, logicDir)),
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
 	}
 	if len(route.RequestTypeName()) > 0 {
@@ -87,21 +77,6 @@ func getHandlerBaseName(route spec.Route) (string, error) {
 	handler = strings.TrimSuffix(handler, "Handler")
 
 	return handler, nil
-}
-
-func getHandlerFolderPath(group spec.Group, route spec.Route) string {
-	folder := route.GetAnnotation(groupProperty)
-	if len(folder) == 0 {
-		folder = group.GetAnnotation(groupProperty)
-		if len(folder) == 0 {
-			return handlerDir
-		}
-	}
-
-	folder = strings.TrimPrefix(folder, "/")
-	folder = strings.TrimSuffix(folder, "/")
-
-	return path.Join(handlerDir, folder)
 }
 
 func getHandlerName(route spec.Route) string {
