@@ -16,7 +16,6 @@ import (
 	apiutil "github.com/dxc0522/goctlx/api/util"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/pkg/golang"
-	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -31,12 +30,6 @@ var (
 	VarStringDir string
 	// VarStringAPI describes the API.
 	VarStringAPI string
-	// VarStringHome describes the go home.
-	VarStringHome string
-	// VarStringRemote describes the remote git repository.
-	VarStringRemote string
-	// VarStringBranch describes the branch.
-	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
 )
@@ -46,19 +39,6 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	apiFile := VarStringAPI
 	dir := VarStringDir
 	namingStyle := VarStringStyle
-	home := VarStringHome
-	remote := VarStringRemote
-	branch := VarStringBranch
-	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote, branch)
-		if len(repo) > 0 {
-			home = repo
-		}
-	}
-
-	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
-	}
 	if len(apiFile) == 0 {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -73,7 +53,6 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	}
 	if len(dir) == 0 {
 		dir = "."
-		//return errors.New("missing -dir")
 	}
 
 	return DoGenProject(apiFile, dir, namingStyle)

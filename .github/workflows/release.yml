@@ -33,3 +33,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.USER_TOKEN }}
           GO_VERSION: ${{ env.GITHUB_GO_VERSION }}
+
+      - name: Refresh Proxy Go Package
+        run: |
+          echo "Repository name: ${{ github.repository }}"
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Tag name: $TAG_NAME"
+          curl -v https://proxy.golang.org/${{ github.repository }}/goctlx/@v/$TAG_NAME.info

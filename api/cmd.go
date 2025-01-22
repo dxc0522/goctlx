@@ -39,9 +39,6 @@ func init() {
 		validateCmdFlags = validateCmd.Flags()
 	)
 	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
-	apiCmdFlags.StringVar(&apigen.VarStringHome, "home")
-	apiCmdFlags.StringVar(&apigen.VarStringRemote, "remote")
-	apiCmdFlags.StringVar(&apigen.VarStringBranch, "branch")
 
 	docCmdFlags.StringVar(&docgen.VarStringDir, "dir")
 	docCmdFlags.StringVar(&docgen.VarStringOutput, "o")
@@ -53,14 +50,8 @@ func init() {
 
 	goCmdFlags.StringVar(&gogen.VarStringDir, "dir")
 	goCmdFlags.StringVar(&gogen.VarStringAPI, "api")
-	goCmdFlags.StringVar(&gogen.VarStringHome, "home")
-	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
-	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")
 	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
 
-	newCmdFlags.StringVar(&new.VarStringHome, "home")
-	newCmdFlags.StringVar(&new.VarStringRemote, "remote")
-	newCmdFlags.StringVar(&new.VarStringBranch, "branch")
 	newCmdFlags.StringVarWithDefaultValue(&new.VarStringStyle, "style", config.DefaultFormat)
 
 	pluginCmdFlags.StringVarP(&plugin.VarStringPlugin, "plugin", "p")
