@@ -37,4 +37,4 @@ jobs:
       - name: Refresh Proxy Go Package
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          curl -v https://proxy.golang.org/${{ github.repository }}/goctlx/@v/$TAG_NAME.info
+          curl -v https://proxy.golang.org/github.com/${{ github.repository }}/@v/$TAG_NAME.info
