@@ -1,5 +1,8 @@
 # goctlx
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/dxc0522/goctlx.svg)](https://pkg.go.dev/github.com/dxc0522/goctlx)
+[![deps.dev](https://img.shields.io/badge/deps.dev-查看依赖分析-blue)](https://deps.dev/go/github.com%2Fdxc0522%2Fgoctlx)
+
 `goctlx` 是基于 [go-zero](https://github.com/zeromicro/go-zero)
 的增强版脚手架工具，针对实际开发需求进行了深度定制。本项目优化了默认模板、文件生成逻辑和目录结构，并添加了便捷功能。
 
