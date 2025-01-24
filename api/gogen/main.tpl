@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	{{.importPackages}}

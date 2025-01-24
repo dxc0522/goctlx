@@ -20,8 +20,12 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx, r, &w)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		if err != nil {
-			l.Error(err)
-			httpx.ErrorCtx(r.Context(), w, err)
+			if respErr, ok := err.(*logic.ResponseDataError); ok {
+                httpx.WriteJson(w, respErr.Code, respErr.Data)
+            } else {
+                l.Error(err)
+                httpx.ErrorCtx(r.Context(), w, err)
+            }
 		} else {
 			{{if .HasResp}}httpx.OkJsonCtx(r.Context(), w, resp){{else}}httpx.Ok(w){{end}}
 		}
