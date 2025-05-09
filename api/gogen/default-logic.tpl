@@ -15,7 +15,6 @@ type {{.logic}} struct {
     ctx        context.Context
     reqCtx     *http.Request
     respWriter *http.ResponseWriter
-    NewErrorResponse func(code int, resp any) *ResponseDataError
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, reqCtx *http.Request, respWriter *http.ResponseWriter) *{{.logic}} {
@@ -25,7 +24,6 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, reqCtx *http
 		ctx:            ctx,
 		reqCtx:         reqCtx,
 		respWriter:     respWriter,
-		NewErrorResponse: NewErrorResponse,
 	}
 }
 
