@@ -1,17 +1,17 @@
 build:
-	go build -ldflags="-s -w" goctl.go
-	$(if $(shell command -v upx || which upx), upx goctl)
+	go build -ldflags="-s -w" goctlx.go
+	$(if $(shell command -v upx || which upx), upx goctlx)
 
 mac:
-	GOOS=darwin go build -ldflags="-s -w" -o goctl-darwin goctl.go
-	$(if $(shell command -v upx || which upx), upx goctl-darwin)
+	GOOS=darwin go build -ldflags="-s -w" -o goctlx-darwin goctlx.go
+	$(if $(shell command -v upx || which upx), upx goctlx-darwin)
 
 win:
-	GOOS=windows go build -ldflags="-s -w" -o goctl.exe goctl.go
-	$(if $(shell command -v upx || which upx), upx goctl.exe)
+	GOOS=windows go build -ldflags="-s -w" -o goctlx.exe goctlx.go
+	$(if $(shell command -v upx || which upx), upx goctlx.exe)
 
 linux:
-	GOOS=linux go build -ldflags="-s -w" -o goctl-linux goctl.go
+	GOOS=linux go build -ldflags="-s -w" -o goctlx-linux goctlx.go
 	$(if $(shell command -v upx || which upx), upx goctl-linux)
 
 image:

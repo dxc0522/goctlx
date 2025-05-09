@@ -25,7 +25,6 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, reqCtx *http
 		ctx:            ctx,
 		reqCtx:         reqCtx,
 		respWriter:     respWriter,
-		NewErrorResponse: NewErrorResponse,
 	}
 }
 
