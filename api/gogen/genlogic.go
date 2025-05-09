@@ -41,7 +41,7 @@ func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	}
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, cfg, logicName, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, logicName, g, r)
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	return nil
 }
 
-func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -72,7 +72,9 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, 
 	if len(route.RequestTypeName()) > 0 {
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
 	}
-
+	if folder := group.GetAnnotation(groupProperty); len(folder) != 0 {
+		goFile = folder + "_" + goFile
+	}
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          logicDir,

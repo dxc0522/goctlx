@@ -43,7 +43,7 @@ go install github.com/dxc0522/goctlx@latest
 在命令中运行：
 
 ```bash
-goctlx api new demo  # 自动生成基于go-zero框架的api服务
+goctlx api demo  # 自动生成基于go-zero框架的api服务,默认生成到demo/demo.api
 ```
 
 ### **生成 API 服务**

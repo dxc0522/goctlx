@@ -29,7 +29,19 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 		return errors.New("missing -o")
 	}
 
-	fp, err := pathx.CreateIfNotExist(apiFile)
+	baseName := pathx.FileNameWithoutExt(filepath.Base(apiFile))
+	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
+		baseName = baseName[:len(baseName)-4]
+	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
+		baseName = baseName[:len(baseName)-3]
+	}
+
+	if err := pathx.MkdirIfNotExist(baseName); err != nil {
+		return err
+	}
+
+	finalApiFile := filepath.Join(baseName, baseName+".api")
+	fp, err := pathx.CreateIfNotExist(finalApiFile)
 	if err != nil {
 		return err
 	}
@@ -40,18 +52,11 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	baseName := pathx.FileNameWithoutExt(filepath.Base(apiFile))
-	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
-		baseName = baseName[:len(baseName)-4]
-	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
-		baseName = baseName[:len(baseName)-3]
-	}
-
 	t := template.Must(template.New("etcTemplate").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"gitUser":     getGitName(),
 		"gitEmail":    getGitEmail(),
-		"serviceName": baseName + "-api",
+		"serviceName": baseName,
 	}); err != nil {
 		return err
 	}

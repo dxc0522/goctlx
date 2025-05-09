@@ -1,6 +1,9 @@
 package api
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/dxc0522/goctlx/api/apigen"
 	"github.com/dxc0522/goctlx/api/docgen"
 	"github.com/dxc0522/goctlx/api/format"
@@ -48,8 +51,10 @@ func init() {
 	formatCmdFlags.BoolVar(&format.VarBoolUseStdin, "stdin")
 	formatCmdFlags.BoolVar(&format.VarBoolSkipCheckDeclare, "declare")
 
-	goCmdFlags.StringVar(&gogen.VarStringDir, "dir")
-	goCmdFlags.StringVar(&gogen.VarStringAPI, "api")
+	currentDir, _ := os.Getwd()
+	defaultApiFile := filepath.Join(currentDir, filepath.Base(currentDir)+".api")
+	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringDir, "dir", ".")
+	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringAPI, "api", defaultApiFile)
 	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
 
 	newCmdFlags.StringVarWithDefaultValue(&new.VarStringStyle, "style", config.DefaultFormat)
