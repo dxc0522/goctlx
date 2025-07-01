@@ -11,6 +11,7 @@ import (
 
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/dxc0522/goctlx/vars"
@@ -197,6 +198,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
+			"version":         version.BuildVersion,
 		},
 	})
 }

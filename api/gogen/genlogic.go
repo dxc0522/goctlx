@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 
@@ -63,8 +64,8 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, 
 	var requestString string
 	if len(route.ResponseTypeName()) > 0 {
 		resp := responseGoTypeName(route, typesPacket)
-		responseString = "(resp " + resp + ", err error)"
-		returnString = "return"
+		responseString = "(" + resp + ", error)"
+		returnString = "return nil, nil"
 	} else {
 		responseString = "error"
 		returnString = "return nil"
@@ -95,6 +96,19 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, logicName string, 
 			"doc":          getDoc(route.JoinedDoc()),
 		},
 	})
+}
+
+func getLogicFolderPath(group spec.Group, route spec.Route) string {
+	folder := route.GetAnnotation(groupProperty)
+	if len(folder) == 0 {
+		folder = group.GetAnnotation(groupProperty)
+		if len(folder) == 0 {
+			return logicDir
+		}
+	}
+	folder = strings.TrimPrefix(folder, "/")
+	folder = strings.TrimSuffix(folder, "/")
+	return path.Join(logicDir, folder)
 }
 
 func genLogicImports(route spec.Route, parentPkg string) string {

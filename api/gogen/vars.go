@@ -9,4 +9,6 @@ const (
 	middlewareDir = "middleware"
 	typesDir      = typesPacket
 	groupProperty = "group"
+
+	groupTypeDefault = "types"
 )

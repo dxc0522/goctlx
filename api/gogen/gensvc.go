@@ -34,10 +34,10 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
-	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
+	configImport := fmt.Sprintf("\"%s/rest\"\n\n", vars.ProjectOpenSourceURL)
 	if len(middlewareStr) > 0 {
+		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, middlewareDir) + "\""
-		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
 	return genFile(fileGenConfig{

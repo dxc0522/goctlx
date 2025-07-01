@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+
+	"github.com/dxc0522/goctlx/util"
+	"github.com/dxc0522/goctlx/util/pathx"
 )
 
 //go:embed api.tpl
@@ -20,6 +22,11 @@ var (
 	// VarStringOutput describes the output.
 	VarStringOutput string
 	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
 )
 
 // CreateApiTemplate create api template file
@@ -46,6 +53,17 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 		return err
 	}
 	defer fp.Close()
+
+	if len(VarStringRemote) > 0 {
+		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
+		if len(repo) > 0 {
+			VarStringHome = repo
+		}
+	}
+
+	if len(VarStringHome) > 0 {
+		pathx.RegisterGoctlHome(VarStringHome)
+	}
 
 	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
 	if err != nil {

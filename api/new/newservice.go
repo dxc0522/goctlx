@@ -8,16 +8,24 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dxc0522/goctlx/api/gogen"
 	conf "github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/spf13/cobra"
 )
 
 //go:embed api.tpl
 var apiTemplate string
 
 var (
+	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
 )
@@ -52,6 +60,17 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 
 	defer fp.Close()
 
+	if len(VarStringRemote) > 0 {
+		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
+		if len(repo) > 0 {
+			VarStringHome = repo
+		}
+	}
+
+	if len(VarStringHome) > 0 {
+		pathx.RegisterGoctlHome(VarStringHome)
+	}
+
 	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
 	if err != nil {
 		return err
@@ -65,6 +84,6 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, false)
 	return err
 }

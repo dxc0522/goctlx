@@ -3,6 +3,7 @@ package gogen
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,27 +12,38 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/core/logx"
+
 	apiformat "github.com/dxc0522/goctlx/api/format"
 	"github.com/dxc0522/goctlx/api/parser"
 	apiutil "github.com/dxc0522/goctlx/api/util"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/pkg/golang"
+	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 const tmpFile = "%s-%d"
 
 var (
-	tmpDir = path.Join(os.TempDir(), "goctl")
+	tmpDir = path.Join(os.TempDir(), "goctlx")
 	// VarStringDir describes the directory.
 	VarStringDir string
 	// VarStringAPI describes the API.
 	VarStringAPI string
+	// VarStringHome describes the go home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the branch.
+	VarStringBranch string
 	// VarStringStyle describes the style of output files.
-	VarStringStyle string
+	VarStringStyle  string
+	VarBoolWithTest bool
+	// VarBoolTypeGroup describes whether to group types.
+	VarBoolTypeGroup bool
 )
 
 // GoCommand gen go project files from command line
@@ -39,27 +51,32 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	apiFile := VarStringAPI
 	dir := VarStringDir
 	namingStyle := VarStringStyle
+	home := VarStringHome
+	remote := VarStringRemote
+	branch := VarStringBranch
+	withTest := VarBoolWithTest
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote, branch)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
+
+	if len(home) > 0 {
+		pathx.RegisterGoctlHome(home)
+	}
 	if len(apiFile) == 0 {
-		currentDir, err := os.Getwd()
-		if err != nil {
-			return errors.New("missing -api")
-		}
-		folderName := filepath.Base(currentDir)
-		apiFile = fmt.Sprintf("%s.api", folderName)
-		apiFilePath := filepath.Join(currentDir, apiFile)
-		if _, err := os.Stat(apiFilePath); os.IsNotExist(err) {
-			return errors.New("missing -api")
-		}
+		return errors.New("missing -api")
 	}
 	if len(dir) == 0 {
 		dir = "."
 	}
 
-	return DoGenProject(apiFile, dir, namingStyle)
+	return DoGenProject(apiFile, dir, namingStyle, withTest)
 }
 
 // DoGenProject gen go project files with api file
-func DoGenProject(apiFile, dir, style string) error {
+func DoGenProject(apiFile, dir, style string, withTest bool) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -80,6 +97,17 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
+	// 修正：使用正确的目录存在检查方式
+	if _, err := os.Stat(handlerDir); err == nil {
+		// 目录存在则删除
+		if err := os.RemoveAll(handlerDir); err != nil {
+			log.Fatalf("Failed to remove handler directory: %v", err)
+		}
+	} else if !os.IsNotExist(err) {
+		// 其他错误（非"目录不存在"错误）
+		log.Fatalf("Error checking handler directory: %v", err)
+	}
+
 	logx.Must(genEtc(dir, cfg, api))
 	logx.Must(genConfig(dir, cfg, api))
 	logx.Must(genMain(dir, rootPkg, cfg, api))
@@ -89,6 +117,10 @@ func DoGenProject(apiFile, dir, style string) error {
 	logx.Must(genHandlers(dir, rootPkg, cfg, api))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
+	if withTest {
+		logx.Must(genHandlersTest(dir, rootPkg, cfg, api))
+		logx.Must(genLogicTest(dir, rootPkg, cfg, api))
+	}
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err

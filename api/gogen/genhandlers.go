@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/dxc0522/goctlx/api/spec"
@@ -11,6 +12,8 @@ import (
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
 )
+
+const defaultLogicPackage = "logic"
 
 //go:embed handler.tpl
 var handlerTemplate string
@@ -86,6 +89,21 @@ func getHandlerName(route spec.Route) string {
 	}
 
 	return handler + "Handler"
+}
+
+func getHandlerFolderPath(group spec.Group, route spec.Route) string {
+	folder := route.GetAnnotation(groupProperty)
+	if len(folder) == 0 {
+		folder = group.GetAnnotation(groupProperty)
+		if len(folder) == 0 {
+			return handlerDir
+		}
+	}
+
+	folder = strings.TrimPrefix(folder, "/")
+	folder = strings.TrimSuffix(folder, "/")
+
+	return path.Join(handlerDir, folder)
 }
 
 func getLogicName(route spec.Route) string {
