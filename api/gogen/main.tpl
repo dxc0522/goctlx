@@ -17,9 +17,10 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c, conf.UseEnv())
 
-    logx.SetUp(logx.LogConf{
+    _ = logx.SetUp(logx.LogConf{
         ServiceName: c.Name,
         Stat:        false,
+		Level:       "info",
     })
 
     server := rest.MustNewServer(c.RestConf)

@@ -9,7 +9,6 @@ import (
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/dxc0522/goctlx/vars"
 )
 
 const contextFilename = "service_context"
@@ -34,7 +33,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
-	configImport := fmt.Sprintf("\"%s/rest\"\n\n", vars.ProjectOpenSourceURL)
+	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
 		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, middlewareDir) + "\""
