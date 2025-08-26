@@ -1,0 +1,502 @@
+package structx
+
+import (
+	"database/sql"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	"github.com/spf13/cobra"
+
+	"github.com/dxc0522/goctlx/util/console"
+	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/dxc0522/goctlx/util/stringx"
+)
+
+var (
+	VarStringDSN    string
+	VarStringTable  string
+	VarStringDir    string
+	VarStringPkg    string
+	VarStringDBName string
+	VarStringDBType string
+)
+
+func Action(cmd *cobra.Command, args []string) error {
+	if VarStringDSN == "" {
+		return fmt.Errorf("expected url, but nothing given")
+	}
+
+	if VarStringDir == "" {
+		return fmt.Errorf("expected dir, but nothing given")
+	}
+
+	if VarStringPkg == "" {
+		VarStringPkg = "dbmodels"
+	}
+	if VarStringDBType == "" {
+		VarStringDBType = "mysql"
+	}
+	if VarStringDBType != "mysql" && VarStringDBType != "postgres" {
+		return fmt.Errorf("unsupported database type: %s, supported types: mysql, postgres", VarStringDBType)
+	}
+	// 解析数据库连接
+	dbType, dsn, err := parseDSN(VarStringDSN, VarStringDBType)
+	if err != nil {
+		return err
+	}
+
+	// 连接数据库
+	db, err := sql.Open(dbType, dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// 获取数据库名（如果未指定）
+	if VarStringDBName == "" {
+		VarStringDBName = extractDBName(VarStringDSN, dbType)
+	}
+
+	// 获取表列表
+	var tables []string
+	if VarStringTable == "" {
+		// 获取所有表
+		tables, err = getAllTables(db, dbType, VarStringDBName)
+		if err != nil {
+			return fmt.Errorf("failed to get table list: %v", err)
+		}
+	} else {
+		// 用逗号分割用户指定的表
+		tables = strings.Split(VarStringTable, ",")
+	}
+
+	// 为每个表生成结构体
+	for _, table := range tables {
+		table = strings.TrimSpace(table)
+		if len(table) == 0 {
+			continue
+		}
+		if err := generateStruct(db, VarStringDBName, table, VarStringDir, VarStringPkg); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// 获取数据库所有表名
+func getAllTables(db *sql.DB, dbType, dbName string) ([]string, error) {
+	switch dbType {
+	case "mysql":
+		// 查询 MySQL 的 information_schema
+		query := "SELECT table_name FROM information_schema.tables WHERE table_schema = ?"
+		rows, err := db.Query(query, dbName)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		var tables []string
+		for rows.Next() {
+			var tableName string
+			if err := rows.Scan(&tableName); err != nil {
+				return nil, err
+			}
+			// 删除包含 goose 的表
+			if strings.Contains(tableName, "goose") {
+				continue
+			}
+			tables = append(tables, tableName)
+		}
+		return tables, nil
+
+	case "postgres":
+		// 查询 PostgreSQL 的 pg_class
+		query := "SELECT relname FROM pg_class WHERE relkind = 'r' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')"
+		rows, err := db.Query(query)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		var tables []string
+		for rows.Next() {
+			var tableName string
+			if err := rows.Scan(&tableName); err != nil {
+				return nil, err
+			}
+			// 删除包含 goose 的表
+			if strings.Contains(tableName, "goose") {
+				continue
+			}
+			tables = append(tables, tableName)
+		}
+		return tables, nil
+
+	default:
+		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	}
+}
+
+func parseDSN(dsn, dbType string) (parsedDBType, parsedDSN string, err error) {
+	// 直接使用传入的 dbType 参数
+	switch dbType {
+	case "mysql":
+		// 处理 MySQL DSN
+		if strings.HasPrefix(dsn, "mysql://") {
+			return "mysql", strings.TrimPrefix(dsn, "mysql://"), nil
+		}
+		if strings.Contains(dsn, "@tcp(") {
+			return "mysql", dsn, nil
+		}
+		return "mysql", dsn, nil
+	case "postgres":
+		// 处理 PostgreSQL DSN
+		if strings.HasPrefix(dsn, "postgres://") || strings.HasPrefix(dsn, "postgresql://") {
+			return "postgres", dsn, nil
+		}
+		return "postgres", dsn, nil
+	default:
+		return "", "", fmt.Errorf("unsupported database type: %s", dbType)
+	}
+}
+
+func extractDBName(dsn, dbType string) string {
+	switch dbType {
+	case "mysql":
+		// 解析 MySQL DSN 获取数据库名
+		cfg, err := mysql.ParseDSN(dsn)
+		if err != nil {
+			parts := strings.Split(dsn, "/")
+			if len(parts) > 0 {
+				lastPart := parts[len(parts)-1]
+				if idx := strings.Index(lastPart, "?"); idx != -1 {
+					return lastPart[:idx]
+				}
+				return lastPart
+			}
+			return ""
+		}
+		return cfg.DBName
+	case "postgres":
+		// 解析 PostgreSQL DSN 获取数据库名
+		parts := strings.Split(dsn, "/")
+		if len(parts) > 0 {
+			dbPart := parts[len(parts)-1]
+			if idx := strings.Index(dbPart, "?"); idx != -1 {
+				return dbPart[:idx]
+			}
+			return dbPart
+		}
+	}
+	return ""
+}
+
+func generateStruct(db *sql.DB, dbName, tableName, dir, pkg string) error {
+	table, err := parseTable(db, dbName, tableName)
+	if err != nil {
+		return err
+	}
+
+	code := genCode(table, pkg)
+
+	fileName := stringx.From(table.Name).ToSnake() + "_gen.go"
+	filePath := filepath.Join(dir, fileName)
+
+	console.Info("Generating %s/%s", dir, fileName)
+
+	if err := pathx.MkdirIfNotExist(dir); err != nil {
+		return err
+	}
+
+	// 删除已存在的文件
+	if _, err := os.Stat(filePath); err == nil {
+		if err := os.Remove(filePath); err != nil {
+			return err
+		}
+	}
+
+	// 生成完整的 Go 文件内容
+	var builder strings.Builder
+	builder.WriteString("// Code generated by goctlx. DO NOT EDIT.\n\n")
+	builder.WriteString(fmt.Sprintf("package %s\n\n", pkg))
+	builder.WriteString("import (\n")
+	builder.WriteString("\t\"time\"\n")
+	builder.WriteString(")\n\n")
+	builder.WriteString(code)
+
+	// 写入文件
+	return os.WriteFile(filePath, []byte(builder.String()), 0644)
+}
+
+type (
+	Table struct {
+		Name    string
+		Comment string
+		Fields  []Field
+	}
+
+	Field struct {
+		Name      string
+		Type      string
+		Tag       string
+		Comment   string
+		IsPrimary bool
+		AutoIncr  bool
+		Nullable  bool
+	}
+)
+
+func parseTable(db *sql.DB, dbName, tableName string) (*Table, error) {
+	table := &Table{
+		Name: tableName,
+	}
+
+	// 获取表注释
+	tableComment, err := getTableComment(db, dbName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	table.Comment = tableComment
+
+	// 获取字段信息
+	fields, err := getFields(db, dbName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	table.Fields = fields
+
+	return table, nil
+}
+
+func getTableComment(db *sql.DB, dbName, tableName string) (string, error) {
+	var query string
+	var comment sql.NullString
+
+	// 使用全局变量 VarStringDBType 来判断数据库类型
+	switch VarStringDBType {
+	case "mysql":
+		query = "SELECT table_comment FROM information_schema.tables WHERE table_schema = ? AND table_name = ?"
+		err := db.QueryRow(query, dbName, tableName).Scan(&comment)
+		if err != nil && err != sql.ErrNoRows {
+			return "", err
+		}
+	case "postgres":
+		// PostgreSQL 查询表注释，使用系统函数 obj_description 和系统表 pg_class
+		query = "SELECT obj_description((SELECT oid FROM pg_class WHERE relname = $1), 'pg_class')"
+		err := db.QueryRow(query, tableName).Scan(&comment)
+		if err != nil && err != sql.ErrNoRows {
+			return "", err
+		}
+	default:
+		return "", fmt.Errorf("unsupported database type: %s", VarStringDBType)
+	}
+
+	return comment.String, nil
+}
+
+// 修改 getFields 函数
+func getFields(db *sql.DB, dbName, tableName string) ([]Field, error) {
+	var fields []Field
+
+	// 使用全局变量 VarStringDBType 来判断数据库类型
+	switch VarStringDBType {
+	case "mysql":
+		query := `
+			SELECT
+				column_name,
+				data_type,
+				is_nullable,
+				column_default,
+				column_comment,
+				extra
+			FROM information_schema.columns
+			WHERE table_schema = ? AND table_name = ?
+			ORDER BY ordinal_position
+		`
+
+		rows, err := db.Query(query, dbName, tableName)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var (
+				name, dataType, isNullable, comment, extra string
+				defaultVal                                 sql.NullString
+			)
+
+			err := rows.Scan(&name, &dataType, &isNullable, &defaultVal, &comment, &extra)
+			if err != nil {
+				return nil, err
+			}
+
+			field := Field{
+				Name:     stringx.From(name).ToCamel(),
+				Type:     convertDataType(dataType, isNullable == "YES"),
+				Comment:  comment,
+				Nullable: isNullable == "YES",
+				AutoIncr: strings.Contains(extra, "auto_increment"),
+			}
+
+			field.Tag = buildTag(name, field.IsPrimary, field.AutoIncr, comment)
+			fields = append(fields, field)
+		}
+	case "postgres":
+		query := `
+			SELECT
+				a.attname AS column_name,
+				pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+				a.attnotnull AS not_null,
+				pg_catalog.col_description(a.attrelid, a.attnum) AS column_comment,
+				a.attidentity
+			FROM pg_catalog.pg_attribute a
+			WHERE a.attrelid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = $1)
+				AND a.attnum > 0 AND NOT a.attisdropped
+			ORDER BY a.attnum
+		`
+
+		rows, err := db.Query(query, tableName)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var (
+				name, dataType, comment, identity string
+				notNull                           bool
+			)
+
+			err := rows.Scan(&name, &dataType, &notNull, &comment, &identity)
+			if err != nil {
+				return nil, err
+			}
+
+			field := Field{
+				Name:     stringx.From(name).ToCamel(),
+				Type:     convertDataType(dataType, !notNull),
+				Comment:  comment,
+				Nullable: !notNull,
+				AutoIncr: identity != "",
+			}
+
+			field.Tag = buildTag(name, field.IsPrimary, field.AutoIncr, comment)
+			fields = append(fields, field)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported database type: %s", VarStringDBType)
+	}
+
+	return fields, nil
+}
+
+func convertDataType(dataType string, nullable bool) string {
+	// 处理常见的数据类型映射
+	dataType = strings.ToLower(dataType)
+
+	var goType string
+	switch {
+	case strings.Contains(dataType, "int"):
+		if strings.Contains(dataType, "bigint") {
+			goType = "int64"
+		} else {
+			goType = "int32"
+		}
+	case strings.Contains(dataType, "char"), strings.Contains(dataType, "text"):
+		goType = "string"
+	case strings.Contains(dataType, "date"), strings.Contains(dataType, "time"):
+		goType = "time.Time"
+	case strings.Contains(dataType, "decimal"), strings.Contains(dataType, "float"), strings.Contains(dataType, "double"):
+		goType = "float64"
+	case strings.Contains(dataType, "bool"):
+		goType = "bool"
+	default:
+		goType = "string"
+	}
+
+	// 如果字段可为空，则使用指针类型
+	if nullable {
+		switch goType {
+		case "int32":
+			return "*int32"
+		case "int64":
+			return "*int64"
+		case "float64":
+			return "*float64"
+		case "bool":
+			return "*bool"
+		case "time.Time":
+			return "*time.Time"
+		default:
+			return goType
+		}
+	}
+
+	return goType
+}
+
+func buildTag(columnName string, isPrimary, autoIncr bool, comment string) string {
+	var tags []string
+
+	// 添加gorm标签
+	tags = append(tags, fmt.Sprintf("column:%s", columnName))
+
+	if isPrimary {
+		tags = append(tags, "primaryKey")
+	}
+
+	if autoIncr {
+		tags = append(tags, "autoIncrement:true")
+	}
+
+	if comment != "" {
+		escapedComment := strings.ReplaceAll(comment, "\"", "\\\"")
+		tags = append(tags, fmt.Sprintf("comment:%s", escapedComment))
+	}
+
+	gormTag := strings.Join(tags, ";")
+	jsonTag := fmt.Sprintf("%s,omitempty", stringx.From(columnName).ToSnake())
+
+	return fmt.Sprintf("`gorm:\"%s\" json:\"%s\"`", gormTag, jsonTag)
+}
+
+func genCode(table *Table, pkg string) string {
+	var builder strings.Builder
+
+	// 写入常量
+	tableNameConst := stringx.From(table.Name).ToCamel()
+	builder.WriteString(fmt.Sprintf("const TableName%s = \"%s\"\n\n", tableNameConst, table.Name))
+
+	// 写入结构体注释
+	if table.Comment != "" {
+		builder.WriteString(fmt.Sprintf("// %s %s\n", tableNameConst, table.Comment))
+	} else {
+		builder.WriteString(fmt.Sprintf("// %s \n", tableNameConst))
+	}
+
+	// 写入结构体定义
+	builder.WriteString(fmt.Sprintf("type %s struct {\n", tableNameConst))
+
+	for _, field := range table.Fields {
+		comment := ""
+		if field.Comment != "" {
+			comment = fmt.Sprintf(" // %s", field.Comment)
+		}
+		builder.WriteString(fmt.Sprintf("\t%s %s %s%s\n", field.Name, field.Type, field.Tag, comment))
+	}
+
+	builder.WriteString("}\n\n")
+
+	// 写入TableName方法
+	builder.WriteString(fmt.Sprintf("// TableName %s's table name\n", tableNameConst))
+	builder.WriteString(fmt.Sprintf("func (*%s) TableName() string {\n", tableNameConst))
+	builder.WriteString(fmt.Sprintf("\treturn TableName%s\n", tableNameConst))
+	builder.WriteString("}\n")
+
+	return builder.String()
+}
