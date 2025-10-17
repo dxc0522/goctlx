@@ -78,6 +78,7 @@ func init() {
 	// 添加 struct 命令标志
 	structCmdFlags.StringVar(&structx.VarStringDSN, "dsn")
 	structCmdFlags.StringVarP(&structx.VarStringTable, "table", "t")
+	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringDialect, "dialect", "l", "mysql")
 	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringDir, "dir", "d", "dbmodels")
 	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringPkg, "package", "p", "dbmodels")
 	structCmdFlags.StringVar(&structx.VarStringDBName, "database")

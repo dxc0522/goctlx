@@ -17,12 +17,12 @@ import (
 )
 
 var (
-	VarStringDSN    string
-	VarStringTable  string
-	VarStringDir    string
-	VarStringPkg    string
-	VarStringDBName string
-	VarStringDBType string
+	VarStringDSN     string
+	VarStringTable   string
+	VarStringDir     string
+	VarStringPkg     string
+	VarStringDBName  string
+	VarStringDialect string
 )
 
 func Action(cmd *cobra.Command, args []string) error {
@@ -37,14 +37,14 @@ func Action(cmd *cobra.Command, args []string) error {
 	if VarStringPkg == "" {
 		VarStringPkg = "dbmodels"
 	}
-	if VarStringDBType == "" {
-		VarStringDBType = "mysql"
+	if VarStringDialect == "" {
+		VarStringDialect = "mysql"
 	}
-	if VarStringDBType != "mysql" && VarStringDBType != "postgres" {
-		return fmt.Errorf("unsupported database type: %s, supported types: mysql, postgres", VarStringDBType)
+	if VarStringDialect != "mysql" && VarStringDialect != "postgres" {
+		return fmt.Errorf("unsupported database type: %s, supported types: mysql, postgres", VarStringDialect)
 	}
 	// 解析数据库连接
-	dbType, dsn, err := parseDSN(VarStringDSN, VarStringDBType)
+	dbType, dsn, err := parseDSN(VarStringDSN, VarStringDialect)
 	if err != nil {
 		return err
 	}
@@ -114,8 +114,8 @@ func getAllTables(db *sql.DB, dbType, dbName string) ([]string, error) {
 		return tables, nil
 
 	case "postgres":
-		// 查询 PostgreSQL 的 pg_class
-		query := "SELECT relname FROM pg_class WHERE relkind = 'r' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')"
+		// 使用 pg_tables 视图替代原来的复杂查询
+		query := "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
 		rows, err := db.Query(query)
 		if err != nil {
 			return nil, err
@@ -276,8 +276,8 @@ func getTableComment(db *sql.DB, dbName, tableName string) (string, error) {
 	var query string
 	var comment sql.NullString
 
-	// 使用全局变量 VarStringDBType 来判断数据库类型
-	switch VarStringDBType {
+	// 使用全局变量 VarStringDialect 来判断数据库类型
+	switch VarStringDialect {
 	case "mysql":
 		query = "SELECT table_comment FROM information_schema.tables WHERE table_schema = ? AND table_name = ?"
 		err := db.QueryRow(query, dbName, tableName).Scan(&comment)
@@ -286,13 +286,20 @@ func getTableComment(db *sql.DB, dbName, tableName string) (string, error) {
 		}
 	case "postgres":
 		// PostgreSQL 查询表注释，使用系统函数 obj_description 和系统表 pg_class
-		query = "SELECT obj_description((SELECT oid FROM pg_class WHERE relname = $1), 'pg_class')"
+		query = `
+        SELECT obj_description((
+            SELECT c.oid 
+            FROM pg_class c 
+            JOIN pg_namespace n ON n.oid = c.relnamespace 
+            WHERE c.relname = $1 AND n.nspname = 'public'
+        ), 'pg_class')`
 		err := db.QueryRow(query, tableName).Scan(&comment)
 		if err != nil && err != sql.ErrNoRows {
 			return "", err
 		}
+
 	default:
-		return "", fmt.Errorf("unsupported database type: %s", VarStringDBType)
+		return "", fmt.Errorf("unsupported database type: %s", VarStringDialect)
 	}
 
 	return comment.String, nil
@@ -302,8 +309,8 @@ func getTableComment(db *sql.DB, dbName, tableName string) (string, error) {
 func getFields(db *sql.DB, dbName, tableName string) ([]Field, error) {
 	var fields []Field
 
-	// 使用全局变量 VarStringDBType 来判断数据库类型
-	switch VarStringDBType {
+	// 使用全局变量 VarStringDialect 来判断数据库类型
+	switch VarStringDialect {
 	case "mysql":
 		query := `
 			SELECT
@@ -348,17 +355,22 @@ func getFields(db *sql.DB, dbName, tableName string) ([]Field, error) {
 		}
 	case "postgres":
 		query := `
-			SELECT
-				a.attname AS column_name,
-				pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
-				a.attnotnull AS not_null,
-				pg_catalog.col_description(a.attrelid, a.attnum) AS column_comment,
-				a.attidentity
-			FROM pg_catalog.pg_attribute a
-			WHERE a.attrelid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = $1)
-				AND a.attnum > 0 AND NOT a.attisdropped
-			ORDER BY a.attnum
-		`
+        SELECT
+            a.attname AS column_name,
+            pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+            a.attnotnull AS not_null,
+            pg_catalog.col_description(a.attrelid, a.attnum) AS column_comment,
+            a.attidentity,
+            CASE WHEN ct.contype = 'p' THEN true ELSE false END AS is_primary
+        FROM pg_catalog.pg_attribute a
+        JOIN pg_class pc ON pc.oid = a.attrelid
+        JOIN pg_namespace pn ON pn.oid = pc.relnamespace
+        LEFT JOIN pg_constraint ct ON a.attrelid = ct.conrelid 
+            AND a.attnum = ANY(ct.conkey) AND ct.contype = 'p'
+        WHERE pc.relname = $1 AND pn.nspname = 'public'
+            AND a.attnum > 0 AND NOT a.attisdropped
+        ORDER BY a.attnum
+    `
 
 		rows, err := db.Query(query, tableName)
 		if err != nil {
@@ -368,28 +380,31 @@ func getFields(db *sql.DB, dbName, tableName string) ([]Field, error) {
 
 		for rows.Next() {
 			var (
-				name, dataType, comment, identity string
-				notNull                           bool
+				name, dataType, identity string
+				notNull, isPrimary       bool
+				comment                  sql.NullString // 使用 sql.NullString 处理可能为 NULL 的注释
 			)
 
-			err := rows.Scan(&name, &dataType, &notNull, &comment, &identity)
+			err := rows.Scan(&name, &dataType, &notNull, &comment, &identity, &isPrimary)
 			if err != nil {
 				return nil, err
 			}
 
 			field := Field{
-				Name:     stringx.From(name).ToCamel(),
-				Type:     convertDataType(dataType, !notNull),
-				Comment:  comment,
-				Nullable: !notNull,
-				AutoIncr: identity != "",
+				Name:      stringx.From(name).ToCamel(),
+				Type:      convertDataType(dataType, !notNull),
+				Comment:   comment.String, // 使用 .String 获取实际值
+				Nullable:  !notNull,
+				AutoIncr:  identity != "",
+				IsPrimary: isPrimary,
 			}
 
-			field.Tag = buildTag(name, field.IsPrimary, field.AutoIncr, comment)
+			field.Tag = buildTag(name, field.IsPrimary, field.AutoIncr, comment.String)
 			fields = append(fields, field)
 		}
+
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s", VarStringDBType)
+		return nil, fmt.Errorf("unsupported database type: %s", VarStringDialect)
 	}
 
 	return fields, nil
