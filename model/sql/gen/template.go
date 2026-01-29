@@ -32,6 +32,7 @@ const (
 	updateMethodTemplateFile              = "interface-update.tpl"
 	varTemplateFile                       = "var.tpl"
 	errTemplateFile                       = "err.tpl"
+	modelsTemplateFile                    = "models.tpl" // 新增：models.go 模板
 )
 
 var templates = map[string]string{

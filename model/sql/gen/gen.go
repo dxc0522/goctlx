@@ -47,6 +47,7 @@ type (
 		cacheExtra     string
 		tableName      string
 		customizedCode string
+		modelsCode     string // 新增：models.go 代码
 	}
 
 	codeTuple struct {
@@ -116,7 +117,7 @@ func (g *defaultGenerator) StartFromDDL(filename string, withCache, strict bool,
 		return err
 	}
 
-	return g.createFile(modelList)
+	return g.createFile(modelList, withCache)
 }
 
 func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict bool) error {
@@ -142,10 +143,10 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 		}
 	}
 
-	return g.createFile(m)
+	return g.createFile(m, withCache)
 }
 
-func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
+func (g *defaultGenerator) createFile(modelList map[string]*codeTuple, withCache bool) error {
 	dirAbs, err := filepath.Abs(g.dir)
 	if err != nil {
 		return err
@@ -158,6 +159,8 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 		return err
 	}
 
+	// 获取所有表名
+	var tables []string
 	for tableName, codes := range modelList {
 		tn := stringx.From(tableName)
 		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat,
@@ -173,36 +176,51 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 			return err
 		}
 
-		name = util.SafeString(modelFilename) + ".go"
-		filename = filepath.Join(dirAbs, name)
-		if pathx.FileExists(filename) {
-			g.Warning("%s already exists, ignored.", name)
-			continue
-		}
-		err = os.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
-		if err != nil {
-			return err
-		}
+		// 实际实现中需要从 modelList 获取表信息
+		tables = append(tables, tableName)
+		//移除自定义方法
+		//name = util.SafeString(modelFilename) + ".go"
+		//filename = filepath.Join(dirAbs, name)
+		//if pathx.FileExists(filename) {
+		//	g.Warning("%s already exists, ignored.", name)
+		//	continue
+		//}
+		//err = os.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
+		//if err != nil {
+		//	return err
+		//}
+	}
+
+	// 生成 models.go 文件
+	modelsCode, err := g.genModels(tables, withCache)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filepath.Join(dirAbs, "models.go"), []byte(modelsCode), os.ModePerm)
+	if err != nil {
+		return err
 	}
 
 	// generate error file
-	varFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, "vars")
-	if err != nil {
-		return err
-	}
-
-	filename := filepath.Join(dirAbs, varFilename+".go")
-	text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
-	if err != nil {
-		return err
-	}
-
-	err = util.With("vars").Parse(text).SaveTo(map[string]any{
-		"pkg": g.pkg,
-	}, filename, false)
-	if err != nil {
-		return err
-	}
+	//varFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, "vars")
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//filename := filepath.Join(dirAbs, varFilename+".go")
+	//text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = util.With("vars").Parse(text).SaveTo(map[string]any{
+	//	"pkg":       g.pkg,
+	//	"withCache": withCache, // 传递 withCache 参数
+	//}, filename, false)
+	//if err != nil {
+	//	return err
+	//}
 
 	g.Success("Done.")
 	return nil
@@ -344,6 +362,34 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	output, err := g.executeModel(table, code)
+	if err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
+}
+func (g *defaultGenerator) genModels(tables []string, withCache bool) (string, error) {
+	text, err := pathx.LoadTemplate(category, modelsTemplateFile, template.Models)
+	if err != nil {
+		return "", err
+	}
+
+	// 转换表信息为模板所需格式
+	var tableData []map[string]any
+	for _, table := range tables {
+		tableData = append(tableData, map[string]any{
+			"upperStartCamelObject": stringx.From(table).ToCamel(),
+			"withCache":             withCache,
+		})
+	}
+
+	output, err := util.With("models").
+		Parse(text).
+		Execute(map[string]any{
+			"pkg":       g.pkg,
+			"tables":    tableData,
+			"withCache": withCache,
+		})
 	if err != nil {
 		return "", err
 	}

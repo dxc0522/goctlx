@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"fmt"
+
 	"github.com/dxc0522/goctlx/model/sql/template"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
@@ -17,7 +19,7 @@ func genTag(table Table, in string) (string, error) {
 	}
 
 	output, err := util.With("tag").Parse(text).Execute(map[string]any{
-		"field": in,
+		"field": fmt.Sprintf(`%s" json:"%s,omitempty`, in, in),
 		"data":  table,
 	})
 	if err != nil {

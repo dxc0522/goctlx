@@ -5,11 +5,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
+
 	"github.com/dxc0522/goctlx/model/sql/template"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/dxc0522/goctlx/util/stringx"
-	"github.com/zeromicro/go-zero/core/collection"
 )
 
 func genVars(table Table, withCache, postgreSql bool) (string, error) {
@@ -35,6 +36,7 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 		"withCache":             withCache,
 		"postgreSql":            postgreSql,
 		"data":                  table,
+		"table":                 table.Name.Source(),
 		"ignoreColumns": func() string {
 			var set = collection.NewSet()
 			for _, c := range table.ignoreColumns {

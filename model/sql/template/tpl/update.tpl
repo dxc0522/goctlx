@@ -1,14 +1,29 @@
-func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, {{if .containsIndexCache}}newData{{else}}data{{end}} *{{.upperStartCamelObject}}) error {
-	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne(ctx, newData.{{.upperStartCamelPrimaryKey}})
-	if err!=nil{
-		return err
-	}
 
-{{end}}	{{.keys}}
-    _, {{if .containsIndexCache}}err{{else}}err:{{end}}= m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, {{.expressionValues}})
-	}, {{.keyValues}}){{else}}query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
-    _,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
-	return err
+// 更新{{.upperStartCamelObject}}记录
+func (m *{{.upperStartCamelObject}}Model)Update(ctx context.Context, in *{{.upperStartCamelObject}}) (out *{{.upperStartCamelObject}}, err error) {
+	db := m.DbEngin.WithContext(ctx).Table(TableName{{.upperStartCamelObject}})
+
+	err = db.Updates(&in).Error
+	if err != nil {
+		return nil, err
+	}
+	return in, err
+}
+
+// 更新{{.upperStartCamelObject}}记录
+func (m *{{.upperStartCamelObject}}Model)UpdateColumns(ctx context.Context, id int64, columns map[string]interface{}) error {
+	db := m.DbEngin.WithContext(ctx).Table(TableName{{.upperStartCamelObject}})
+
+	return db.Where("`id` = ?", id).UpdateColumns(&columns).Error
+}
+
+// 更新{{.upperStartCamelObject}}记录
+func (m *{{.upperStartCamelObject}}Model)Save(ctx context.Context, in *{{.upperStartCamelObject}}) (out *{{.upperStartCamelObject}}, err error) {
+	db := m.DbEngin.WithContext(ctx).Table(TableName{{.upperStartCamelObject}})
+
+	err = db.Save(&in).Error
+	if err != nil {
+		return nil, err
+	}
+	return in, err
 }
