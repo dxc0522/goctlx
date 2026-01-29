@@ -13,12 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dxc0522/goctlx/api/parser"
 	"github.com/dxc0522/goctlx/pkg/env"
 	"github.com/dxc0522/goctlx/rpc/execx"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/stretchr/testify/assert"
 )
 
 var (

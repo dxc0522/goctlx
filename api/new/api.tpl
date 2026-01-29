@@ -8,7 +8,7 @@ type Response {
   Message string `json:"message"`
 }
 
-service {{.name}} {
+service {{.name}}-api {
   @handler {{.handler}}Handler
   get /from/:name(Request) returns (Response)
 }

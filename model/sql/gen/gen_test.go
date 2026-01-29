@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dxc0522/goctlx/config"
-	"github.com/dxc0522/goctlx/model/sql/parser"
-	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stringx"
+
+	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/model/sql/parser"
+	"github.com/dxc0522/goctlx/util/pathx"
 )
 
 //go:embed testdata/user.sql
@@ -34,7 +35,7 @@ func TestCacheModel(t *testing.T) {
 	dir := filepath.Join(pathx.MustTempDir(), "./testmodel")
 	cacheDir := filepath.Join(dir, "cache")
 	noCacheDir := filepath.Join(dir, "nocache")
-	g, err := NewDefaultGenerator(cacheDir, &config.Config{
+	g, err := NewDefaultGenerator("cache", cacheDir, &config.Config{
 		NamingFormat: "GoZero",
 	})
 	assert.Nil(t, err)
@@ -45,7 +46,7 @@ func TestCacheModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(cacheDir, "TestUserModel.go"))
 		return err == nil
 	}())
-	g, err = NewDefaultGenerator(noCacheDir, &config.Config{
+	g, err = NewDefaultGenerator("cache", noCacheDir, &config.Config{
 		NamingFormat: "gozero",
 	})
 	assert.Nil(t, err)
@@ -72,7 +73,7 @@ func TestNamingModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g, err := NewDefaultGenerator(camelDir, &config.Config{
+	g, err := NewDefaultGenerator("cache", camelDir, &config.Config{
 		NamingFormat: "GoZero",
 	})
 	assert.Nil(t, err)
@@ -83,7 +84,7 @@ func TestNamingModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
 		return err == nil
 	}())
-	g, err = NewDefaultGenerator(snakeDir, &config.Config{
+	g, err = NewDefaultGenerator("cache", snakeDir, &config.Config{
 		NamingFormat: "go_zero",
 	})
 	assert.Nil(t, err)
@@ -110,7 +111,7 @@ func TestFolderName(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g, err := NewDefaultGenerator(camelDir, &config.Config{
+	g, err := NewDefaultGenerator("cache", camelDir, &config.Config{
 		NamingFormat: "GoZero",
 	})
 	assert.Nil(t, err)
@@ -125,7 +126,7 @@ func TestFolderName(t *testing.T) {
 	}())
 	assert.Equal(t, pkg, g.pkg)
 
-	g, err = NewDefaultGenerator(snakeDir, &config.Config{
+	g, err = NewDefaultGenerator("cache", snakeDir, &config.Config{
 		NamingFormat: "go_zero",
 	})
 	assert.Nil(t, err)
@@ -180,7 +181,7 @@ func Test_genPublicModel(t *testing.T) {
 	err = os.WriteFile(modelFilename, []byte(source), 0o777)
 	require.NoError(t, err)
 
-	g, err := NewDefaultGenerator(modelDir, &config.Config{
+	g, err := NewDefaultGenerator("cache", modelDir, &config.Config{
 		NamingFormat: config.DefaultFormat,
 	})
 	require.NoError(t, err)

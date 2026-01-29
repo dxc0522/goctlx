@@ -38,15 +38,15 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 		"data":                  table,
 		"table":                 table.Name.Source(),
 		"ignoreColumns": func() string {
-			var set = collection.NewSet()
+			var set = collection.NewSet[string]()
 			for _, c := range table.ignoreColumns {
 				if postgreSql {
-					set.AddStr(fmt.Sprintf(`"%s"`, c))
+					set.Add(fmt.Sprintf(`"%s"`, c))
 				} else {
-					set.AddStr(fmt.Sprintf("\"`%s`\"", c))
+					set.Add(fmt.Sprintf("\"`%s`\"", c))
 				}
 			}
-			list := set.KeysStr()
+			list := set.Keys()
 			sort.Strings(list)
 			return strings.Join(list, ", ")
 		}(),

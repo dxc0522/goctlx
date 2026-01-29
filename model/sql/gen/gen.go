@@ -30,6 +30,7 @@ type (
 		cfg           *config.Config
 		isPostgreSql  bool
 		ignoreColumns []string
+		prefix        string
 	}
 
 	// Option defines a function with argument defaultGenerator
@@ -47,7 +48,6 @@ type (
 		cacheExtra     string
 		tableName      string
 		customizedCode string
-		modelsCode     string // 新增：models.go 代码
 	}
 
 	codeTuple struct {
@@ -57,7 +57,7 @@ type (
 )
 
 // NewDefaultGenerator creates an instance for defaultGenerator
-func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
+func NewDefaultGenerator(prefix, dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
 	}
@@ -73,7 +73,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 		return nil, err
 	}
 
-	generator := &defaultGenerator{dir: dir, cfg: cfg, pkg: pkg}
+	generator := &defaultGenerator{dir: dir, cfg: cfg, pkg: pkg, prefix: prefix}
 	var optionList []Option
 	optionList = append(optionList, newDefaultOption())
 	optionList = append(optionList, opt...)
@@ -190,7 +190,6 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple, withCache
 		//	return err
 		//}
 	}
-
 	// 生成 models.go 文件
 	modelsCode, err := g.genModels(tables, withCache)
 	if err != nil {
@@ -215,8 +214,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple, withCache
 	//}
 	//
 	//err = util.With("vars").Parse(text).SaveTo(map[string]any{
-	//	"pkg":       g.pkg,
-	//	"withCache": withCache, // 传递 withCache 参数
+	//	"pkg": g.pkg,
 	//}, filename, false)
 	//if err != nil {
 	//	return err
@@ -278,7 +276,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	primaryKey, uniqueKey := genCacheKeys(in)
+	primaryKey, uniqueKey := genCacheKeys(g.prefix, in)
 
 	var table Table
 	table.Table = in

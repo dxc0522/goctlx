@@ -19,7 +19,7 @@ func genTag(table Table, in string) (string, error) {
 	}
 
 	output, err := util.With("tag").Parse(text).Execute(map[string]any{
-		"field": fmt.Sprintf(`%s" json:"%s,omitempty`, in, in),
+		"field": fmt.Sprintf(`%s" json:"%s,omitempty`, in, in), // 设置字段类型
 		"data":  table,
 	})
 	if err != nil {

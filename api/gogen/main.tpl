@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"github.com/zeromicro/go-zero/core/logx"
+	"vibrahealth/services/pkg/provide"
 
 	{{.importPackages}}
 )
@@ -34,6 +35,5 @@ func main() {
 
     handler.RegisterHandlers(server, ctx)
 
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	server.Start()
+	provide.ServerSetup(server, c.RestConf)
 }

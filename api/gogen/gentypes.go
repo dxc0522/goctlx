@@ -9,14 +9,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/collection"
-
 	"github.com/dxc0522/goctlx/api/spec"
 	apiutil "github.com/dxc0522/goctlx/api/util"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/format"
+	"github.com/zeromicro/go-zero/core/collection"
 )
 
 const typesFile = "types"
@@ -60,7 +59,7 @@ func getTypeName(tp spec.Type) string {
 
 func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	groupTypes := make(map[string]map[string]spec.Type)
-	typesBelongToFiles := make(map[string]*collection.Set)
+	typesBelongToFiles := make(map[string]*collection.Set[string])
 
 	for _, v := range api.Service.Groups {
 		group := v.GetAnnotation(groupProperty)
@@ -76,37 +75,37 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			responseTypeName := getTypeName(v.ResponseType)
 			requestTypeFileSet, ok := typesBelongToFiles[requestTypeName]
 			if !ok {
-				requestTypeFileSet = collection.NewSet()
+				requestTypeFileSet = collection.NewSet[string]()
 			}
 			if len(requestTypeName) > 0 {
-				requestTypeFileSet.AddStr(group)
+				requestTypeFileSet.Add(group)
 				typesBelongToFiles[requestTypeName] = requestTypeFileSet
 			}
 
 			responseTypeFileSet, ok := typesBelongToFiles[responseTypeName]
 			if !ok {
-				responseTypeFileSet = collection.NewSet()
+				responseTypeFileSet = collection.NewSet[string]()
 			}
 			if len(responseTypeName) > 0 {
-				responseTypeFileSet.AddStr(group)
+				responseTypeFileSet.Add(group)
 				typesBelongToFiles[responseTypeName] = responseTypeFileSet
 			}
 		}
 	}
 
-	typesInOneFile := make(map[string]*collection.Set)
+	typesInOneFile := make(map[string]*collection.Set[string])
 	for typeName, fileSet := range typesBelongToFiles {
 		count := fileSet.Count()
 		switch {
 		case count == 0: // it means there has no structure type or no request/response body
 			continue
 		case count == 1: // it means a structure type used in only one group.
-			groupName := fileSet.KeysStr()[0]
+			groupName := fileSet.Keys()[0]
 			typeSet, ok := typesInOneFile[groupName]
 			if !ok {
-				typeSet = collection.NewSet()
+				typeSet = collection.NewSet[string]()
 			}
-			typeSet.AddStr(typeName)
+			typeSet.Add(typeName)
 			typesInOneFile[groupName] = typeSet
 		default: // it means this type is used in multiple groups.
 			continue
@@ -134,7 +133,7 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 		}
 
 		if typeCount == 1 { // belong to one group
-			groupName := groupSet.KeysStr()[0]
+			groupName := groupSet.Keys()[0]
 			types, ok := groupTypes[groupName]
 			if !ok {
 				types = make(map[string]spec.Type)
@@ -155,7 +154,7 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	}
 
 	for group, typeGroup := range groupTypes {
-		var types []spec.Type
+		types := make([]spec.Type, 0, len(typeGroup))
 		for _, v := range typeGroup {
 			types = append(types, v)
 		}
@@ -185,9 +184,9 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 		return err
 	}
 
-	typeFilename = typeFilename + "_gen.go"
+	typeFilename = typeFilename + ".go"
 	filename := path.Join(dir, typesDir, typeFilename)
-	_ = os.RemoveAll(filename)
+	_ = os.Remove(filename)
 
 	return genFile(fileGenConfig{
 		dir:             dir,

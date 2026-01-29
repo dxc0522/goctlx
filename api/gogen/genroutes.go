@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -15,6 +16,7 @@ import (
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/dxc0522/goctlx/vars"
+	"github.com/zeromicro/go-zero/core/collection"
 )
 
 const (
@@ -37,7 +39,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}} {{.sse}}
 	)
 `
 	timeoutThreshold = time.Millisecond
@@ -60,6 +62,7 @@ type (
 		routes           []route
 		jwtEnabled       bool
 		signatureEnabled bool
+		sseEnabled       bool
 		authName         string
 		timeout          string
 		middlewares      []string
@@ -75,7 +78,7 @@ type (
 	}
 )
 
-func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genRoutes(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -120,10 +123,17 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		if len(g.jwtTrans) > 0 {
 			jwt = jwt + fmt.Sprintf("\n rest.WithJwtTransition(serverCtx.Config.%s.PrevSecret,serverCtx.Config.%s.Secret),", g.jwtTrans, g.jwtTrans)
 		}
+
 		var signature, prefix string
 		if g.signatureEnabled {
 			signature = "\n rest.WithSignature(serverCtx.Config.Signature),"
 		}
+
+		var sse string
+		if g.sseEnabled {
+			sse = "\n rest.WithSSE(),"
+		}
+
 		if len(g.prefix) > 0 {
 			prefix = fmt.Sprintf(`
 rest.WithPrefix("%s"),`, g.prefix)
@@ -169,6 +179,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"routes":    routes,
 			"jwt":       jwt,
 			"signature": signature,
+			"sse":       sse,
 			"prefix":    prefix,
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
@@ -182,7 +193,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 		return err
 	}
 
-	routeFilename = routeFilename + "_gen.go"
+	routeFilename = routeFilename + ".go"
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
@@ -199,6 +210,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
 			"version":         version.BuildVersion,
+			"projectPkg":      projectPkg,
 		},
 	})
 }
@@ -214,7 +226,24 @@ func formatDuration(duration time.Duration) string {
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
-	projectSection := fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir))
+	importSet := collection.NewSet[string]()
+	importSet.Add(fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
+	for _, group := range api.Service.Groups {
+		for _, route := range group.Routes {
+			folder := route.GetAnnotation(groupProperty)
+			if len(folder) == 0 {
+				folder = group.GetAnnotation(groupProperty)
+				if len(folder) == 0 {
+					continue
+				}
+			}
+			importSet.Add(fmt.Sprintf("%s \"%s\"", toPrefix(folder),
+				pathx.JoinPackages(parentPkg, handlerDir, folder)))
+		}
+	}
+	imports := importSet.Keys()
+	sort.Strings(imports)
+	projectSection := strings.Join(imports, "\n\t")
 	depSection := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
 	return fmt.Sprintf("%s\n\n\t%s", projectSection, depSection)
 }
@@ -225,8 +254,17 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 	for _, g := range api.Service.Groups {
 		var groupedRoutes group
 		for _, r := range g.Routes {
-			handler := strings.Title(getHandlerName(r))
+			handler := getHandlerName(r)
 			handler = handler + "(serverCtx)"
+			folder := r.GetAnnotation(groupProperty)
+			if len(folder) > 0 {
+				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
+			} else {
+				folder = g.GetAnnotation(groupProperty)
+				if len(folder) > 0 {
+					handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
+				}
+			}
 			groupedRoutes.routes = append(groupedRoutes.routes, route{
 				method:  mapping[r.Method],
 				path:    r.Path,
@@ -251,6 +289,10 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		signature := g.GetAnnotation("signature")
 		if signature == "true" {
 			groupedRoutes.signatureEnabled = true
+		}
+		sse := g.GetAnnotation("sse")
+		if sse == "true" {
+			groupedRoutes.sseEnabled = true
 		}
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {

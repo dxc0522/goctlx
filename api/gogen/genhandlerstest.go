@@ -7,6 +7,7 @@ import (
 
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
@@ -15,7 +16,7 @@ import (
 //go:embed handler_test.tpl
 var handlerTestTemplate string
 
-func genHandlerTest(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandlerTest(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	handlerPath := getHandlerFolderPath(group, route)
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
@@ -50,14 +51,16 @@ func genHandlerTest(dir, rootPkg string, cfg *config.Config, group spec.Group, r
 			"HasRequest":     len(route.RequestTypeName()) > 0,
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            getDoc(route.JoinedDoc()),
+			"projectPkg":     projectPkg,
+			"version":        version.BuildVersion,
 		},
 	})
 }
 
-func genHandlersTest(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genHandlersTest(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandlerTest(dir, rootPkg, cfg, group, route); err != nil {
+			if err := genHandlerTest(dir, rootPkg, projectPkg, cfg, group, route); err != nil {
 				return err
 			}
 		}

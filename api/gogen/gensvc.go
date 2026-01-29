@@ -7,8 +7,10 @@ import (
 
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/config"
+	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util/format"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/dxc0522/goctlx/vars"
 )
 
 const contextFilename = "service_context"
@@ -16,7 +18,7 @@ const contextFilename = "service_context"
 //go:embed svc.tpl
 var contextTemplate string
 
-func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
@@ -35,8 +37,8 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 
 	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
-		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, middlewareDir) + "\""
+		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
 	return genFile(fileGenConfig{
@@ -52,6 +54,8 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"projectPkg":           projectPkg,
+			"version":              version.BuildVersion,
 		},
 	})
 }

@@ -3,7 +3,6 @@ package gogen
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,10 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/core/logx"
-
 	apiformat "github.com/dxc0522/goctlx/api/format"
 	"github.com/dxc0522/goctlx/api/parser"
 	apiutil "github.com/dxc0522/goctlx/api/util"
@@ -23,6 +18,9 @@ import (
 	"github.com/dxc0522/goctlx/pkg/golang"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 const tmpFile = "%s-%d"
@@ -77,6 +75,11 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, withTest bool) error {
+	return DoGenProjectWithModule(apiFile, dir, "", style, withTest)
+}
+
+// DoGenProjectWithModule gen go project files with api file using custom module name
+func DoGenProjectWithModule(apiFile, dir, moduleName, style string, withTest bool) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -92,34 +95,31 @@ func DoGenProject(apiFile, dir, style string, withTest bool) error {
 	}
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
-	rootPkg, err := golang.GetParentPackage(dir)
+
+	var rootPkg, projectPkg string
+	if len(moduleName) > 0 {
+		rootPkg, projectPkg, err = golang.GetParentPackageWithModule(dir, moduleName)
+	} else {
+		rootPkg, projectPkg, err = golang.GetParentPackage(dir)
+	}
 	if err != nil {
 		return err
 	}
 
-	// 修正：使用正确的目录存在检查方式
-	if _, err := os.Stat(handlerDir); err == nil {
-		// 目录存在则删除
-		if err := os.RemoveAll(handlerDir); err != nil {
-			log.Fatalf("Failed to remove handler directory: %v", err)
-		}
-	} else if !os.IsNotExist(err) {
-		// 其他错误（非"目录不存在"错误）
-		log.Fatalf("Error checking handler directory: %v", err)
-	}
-
 	logx.Must(genEtc(dir, cfg, api))
-	logx.Must(genConfig(dir, cfg, api))
-	logx.Must(genMain(dir, rootPkg, cfg, api))
-	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
+	logx.Must(genConfig(dir, projectPkg, cfg, api))
+	logx.Must(genMain(dir, rootPkg, projectPkg, cfg, api))
+	logx.Must(genServiceContext(dir, rootPkg, projectPkg, cfg, api))
 	logx.Must(genTypes(dir, cfg, api))
-	logx.Must(genRoutes(dir, rootPkg, cfg, api))
-	logx.Must(genHandlers(dir, rootPkg, cfg, api))
-	logx.Must(genLogic(dir, rootPkg, cfg, api))
+	logx.Must(genRoutes(dir, rootPkg, projectPkg, cfg, api))
+	logx.Must(genHandlers(dir, rootPkg, projectPkg, cfg, api))
+	logx.Must(genLogic(dir, rootPkg, projectPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
 	if withTest {
-		logx.Must(genHandlersTest(dir, rootPkg, cfg, api))
-		logx.Must(genLogicTest(dir, rootPkg, cfg, api))
+		logx.Must(genHandlersTest(dir, rootPkg, projectPkg, cfg, api))
+		logx.Must(genLogicTest(dir, rootPkg, projectPkg, cfg, api))
+		logx.Must(genServiceContextTest(dir, rootPkg, projectPkg, cfg, api))
+		logx.Must(genIntegrationTest(dir, rootPkg, projectPkg, cfg, api))
 	}
 
 	if err := backupAndSweep(apiFile); err != nil {

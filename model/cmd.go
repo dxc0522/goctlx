@@ -61,9 +61,11 @@ func init() {
 	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 	pgCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns,
 		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
+	pgCmd.PersistentFlags().StringVarPWithDefaultValue(&command.VarStringCachePrefix, "prefix", "p", "cache")
 
 	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
+	mongoCmdFlags.StringVarP(&mongo.VarStringPrefix, "prefix", "p")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e")
 	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d")
 	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style")
@@ -74,6 +76,7 @@ func init() {
 	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict")
 	mysqlCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns,
 		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
+	mysqlCmd.PersistentFlags().StringVarPWithDefaultValue(&command.VarStringCachePrefix, "prefix", "p", "cache")
 
 	// 添加 struct 命令标志
 	structCmdFlags.StringVar(&structx.VarStringDSN, "dsn")

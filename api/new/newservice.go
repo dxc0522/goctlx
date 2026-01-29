@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/dxc0522/goctlx/api/gogen"
 	conf "github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/spf13/cobra"
 )
 
 //go:embed api.tpl
@@ -28,6 +27,8 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
+	// VarStringModule describes the module name for go.mod.
+	VarStringModule string
 )
 
 // CreateServiceCommand fast create service
@@ -84,6 +85,6 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, false)
+	err = gogen.DoGenProjectWithModule(apiFilePath, abs, VarStringModule, VarStringStyle, false)
 	return err
 }

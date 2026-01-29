@@ -5,10 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-openapi/spec"
-
 	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/internal/version"
+	"github.com/go-openapi/spec"
 )
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
@@ -245,7 +244,7 @@ func isOptional(_ Context, options []string) bool {
 
 func pathVariable2SwaggerVariable(_ Context, path string) string {
 	pathItems := strings.FieldsFunc(path, slashRune)
-	var resp []string
+	resp := make([]string, 0, len(pathItems))
 	for _, v := range pathItems {
 		if strings.HasPrefix(v, ":") {
 			resp = append(resp, "{"+v[1:]+"}")
@@ -292,8 +291,8 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 
 func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 	ext := spec.Extensions{}
-	ext.Add("x-goctlx-version", version.BuildVersion)
-	ext.Add("x-description", "This is a goctlx generated swagger file.")
+	ext.Add("x-goctl-version", version.BuildVersion)
+	ext.Add("x-description", "This is a goctl generated swagger file.")
 	ext.Add("x-date", time.Now().Format(time.DateTime))
 	ext.Add("x-github", "https://github.com/zeromicro/go-zero")
 	ext.Add("x-go-zero-doc", "https://go-zero.dev/")

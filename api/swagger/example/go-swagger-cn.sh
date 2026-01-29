@@ -18,17 +18,17 @@ mkdir bin output
 
 export GOBIN=$(pwd)/bin
 
-# 2. 安装最新版 goctlx
+# 2. 安装最新版 goctl
 go install ../../..
 if [ $? -ne 0 ]; then
-    echo "安装 goctlx 失败"
+    echo "安装 goctl 失败"
     exit 1
 fi
-echo "goctlx 安装成功"
+echo "goctl 安装成功"
 
 # 3. 生成 swagger 文件
 echo "正在生成 swagger 文件..."
-./bin/goctlx api swagger --api example_cn.api --dir output
+./bin/goctl api swagger --api example_cn.api --dir output
 if [ $? -ne 0 ]; then
     echo "生成 swagger 文件失败"
     exit 1

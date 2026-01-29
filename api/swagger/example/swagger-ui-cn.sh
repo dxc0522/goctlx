@@ -35,17 +35,17 @@ else
     echo "Docker已安装"
 fi
 
-# 2. 安装最新版goctlx
+# 2. 安装最新版goctl
 go install ../../..
 if [ $? -ne 0 ]; then
-    echo "goctlx安装失败"
+    echo "goctl安装失败"
     exit 1
 fi
-echo "goctlx 安装成功"
+echo "goctl 安装成功"
 
 # 3. 生成swagger文件
 echo "正在生成swagger文件..."
-./bin/goctlx api swagger --api example_cn.api --dir output
+./bin/goctl api swagger --api example_cn.api --dir output
 if [ $? -ne 0 ]; then
     echo "swagger文件生成失败"
     exit 1

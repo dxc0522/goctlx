@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	"github.com/dxc0522/goctlx/pkg/parser/api/parser"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var (
