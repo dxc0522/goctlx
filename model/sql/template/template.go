@@ -43,9 +43,6 @@ var New string
 //go:embed tpl/model.tpl
 var ModelCustom string
 
-//go:embed tpl/models.tpl
-var Models string
-
 // ModelGen defines a template for model
 var ModelGen = fmt.Sprintf(`%s
 // versions:

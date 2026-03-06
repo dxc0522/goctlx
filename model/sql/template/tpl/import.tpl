@@ -1,9 +1,14 @@
 import (
 	"context"
-	"database/sql"
-    {{if .time}}"time"{{end}}
+	"fmt"
+	"strings"
+	{{if .time}}"time"{{end}}
 
-    "github.com/redis/go-redis/v9"
-    {{if .hasSqlType}}"database/sql"{{end}}
+	{{if .containsPQ}}"github.com/lib/pq"{{end}}
+	"github.com/zeromicro/go-zero/core/stores/builder"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stringx"
 	"gorm.io/gorm"
+
+	{{.third}}
 )

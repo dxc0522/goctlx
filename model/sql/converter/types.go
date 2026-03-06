@@ -293,24 +293,24 @@ func mayConvertNullType(goDataType string, isDefaultNull, unsigned, strict bool)
 
 	switch goDataType {
 	case "int64":
-		return "sql.NullInt64"
+		return "*int64"
 	case "int32":
-		return "sql.NullInt32"
+		return "*int32"
 	case "float64":
-		return "sql.NullFloat64"
+		return "*float64"
 	case "bool":
-		return "sql.NullBool"
+		return "*bool"
 	case "string":
-		return "sql.NullString"
+		return "*string"
 	case "time.Time":
-		return "sql.NullTime"
+		return "*time.Time"
 	default:
 		if unsigned {
 			ret, ok := unsignedTypeMap[goDataType]
 			if ok {
-				return ret
+				return "*" + ret
 			}
 		}
-		return goDataType
+		return "*" + goDataType
 	}
 }
