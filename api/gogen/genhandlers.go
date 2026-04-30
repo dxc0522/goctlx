@@ -48,7 +48,7 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          getHandlerFolderPath(group, route),
-		filename:        filename + ".go",
+		filename:        filename + "_gen.go",
 		templateName:    "handlerTemplate",
 		category:        category,
 		templateFile:    templateFile,

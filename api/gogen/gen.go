@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -11,9 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/core/logx"
 	apiformat "github.com/dxc0522/goctlx/api/format"
 	"github.com/dxc0522/goctlx/api/parser"
 	apiutil "github.com/dxc0522/goctlx/api/util"
@@ -21,6 +17,9 @@ import (
 	"github.com/dxc0522/goctlx/pkg/golang"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 const tmpFile = "%s-%d"
@@ -63,11 +62,15 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	if len(home) > 0 {
 		pathx.RegisterGoctlHome(home)
 	}
-	if len(apiFile) == 0 {
-		return errors.New("missing -api")
-	}
 	if len(dir) == 0 {
-		return errors.New("missing -dir")
+		dir = "."
+	}
+	if len(apiFile) == 0 {
+		absDir, err := filepath.Abs(dir)
+		if err != nil {
+			return err
+		}
+		apiFile = "./" + filepath.Base(absDir) + ".api"
 	}
 
 	return DoGenProject(apiFile, dir, namingStyle, withTest)

@@ -3,10 +3,14 @@ package {{.pkg}}
 import (
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"gorm.io/gorm"
 )
 {{else}}
 
-import "github.com/zeromicro/go-zero/core/stores/sqlx"
+import (
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"gorm.io/gorm"
+)
 {{end}}
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
@@ -24,15 +28,15 @@ type (
 )
 
 // New{{.upperStartCamelObject}}Model returns a model for the database table.
-func New{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
+func New{{.upperStartCamelObject}}Model(conn sqlx.SqlConn, gormDB *gorm.DB{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
 	return &custom{{.upperStartCamelObject}}Model{
-		default{{.upperStartCamelObject}}Model: new{{.upperStartCamelObject}}Model(conn{{if .withCache}}, c, opts...{{end}}),
+		default{{.upperStartCamelObject}}Model: new{{.upperStartCamelObject}}Model(conn, gormDB{{if .withCache}}, c, opts...{{end}}),
 	}
 }
 
 {{if not .withCache}}
 func (m *custom{{.upperStartCamelObject}}Model) withSession(session sqlx.Session) {{.upperStartCamelObject}}Model {
-    return New{{.upperStartCamelObject}}Model(sqlx.NewSqlConnFromSession(session))
+    return New{{.upperStartCamelObject}}Model(sqlx.NewSqlConnFromSession(session), nil)
 }
 {{end}}
 

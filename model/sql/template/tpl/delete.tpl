@@ -12,3 +12,8 @@ func (m *default{{.upperStartCamelObject}}Model) Delete(ctx context.Context, {{.
 		_,err:=m.conn.ExecCtx(ctx, query, {{.lowerStartCamelPrimaryKey}}){{end}}
 	return err
 }
+
+func (m *default{{.upperStartCamelObject}}Model) DeleteBatchGorm(ctx context.Context, conditions string, args ...interface{}) (int64, error) {
+	db := m.gormDB.WithContext(ctx).Where(conditions, args...).Delete(&{{.upperStartCamelObject}}{})
+	return db.RowsAffected, db.Error
+}

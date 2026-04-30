@@ -7,3 +7,7 @@ func (m *default{{.upperStartCamelObject}}Model) Insert(ctx context.Context, dat
     ret,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
 	return ret,err
 }
+
+func (m *default{{.upperStartCamelObject}}Model) InsertGorm(ctx context.Context, data *{{.upperStartCamelObject}}) error {
+	return m.gormDB.WithContext(ctx).Create(data).Error
+}

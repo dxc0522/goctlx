@@ -41,7 +41,7 @@ service Test {
 	assert.NoError(t, err)
 
 	// Read generated handler file
-	handlerPath := filepath.Join(dir, "internal/handler/ssehandler.go")
+	handlerPath := filepath.Join(dir, "internal/handler/ssehandler_gen.go")
 	handlerContent, err := os.ReadFile(handlerPath)
 	assert.NoError(t, err)
 
@@ -109,7 +109,7 @@ service Test {
 	assert.NoError(t, err)
 
 	// Read generated handler file
-	handlerPath := filepath.Join(dir, "internal/handler/ssehandler.go")
+	handlerPath := filepath.Join(dir, "internal/handler/ssehandler_gen.go")
 	handlerContent, err := os.ReadFile(handlerPath)
 	assert.NoError(t, err)
 

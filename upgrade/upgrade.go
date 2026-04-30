@@ -8,12 +8,10 @@ import (
 	"github.com/dxc0522/goctlx/rpc/execx"
 )
 
-// upgrade gets the latest goctl by
-// go install github.com/zeromicro/go-zero/tools/goctl@latest
 func upgrade(_ *cobra.Command, _ []string) error {
-	cmd := `go install github.com/zeromicro/go-zero/tools/goctl@latest`
+	cmd := `go install github.com/dxc0522/goctlx@latest`
 	if runtime.GOOS == "windows" {
-		cmd = `go install github.com/zeromicro/go-zero/tools/goctl@latest`
+		cmd = `go install github.com/dxc0522/goctlx@latest`
 	}
 	info, err := execx.Run(cmd, "")
 	if err != nil {

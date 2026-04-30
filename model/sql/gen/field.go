@@ -21,7 +21,7 @@ func genFields(table Table, fields []*parser.Field) (string, error) {
 		list = append(list, result)
 	}
 
-	return strings.Join(list, "\n"), nil
+	return "\t\t" + strings.Join(list, "\n\t\t"), nil
 }
 
 func genField(table Table, field *parser.Field) (string, error) {

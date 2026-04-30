@@ -196,5 +196,5 @@ func Test_genPublicModel(t *testing.T) {
 		withSession(session sqlx.Session) TestUserModel
 	}`))
 	assert.True(t, strings.Contains(code, "customTestUserModel struct {\n\t\t*defaultTestUserModel\n\t}\n"))
-	assert.True(t, strings.Contains(code, "func NewTestUserModel(conn sqlx.SqlConn) TestUserModel {"))
+	assert.True(t, strings.Contains(code, "func NewTestUserModel(conn sqlx.SqlConn, gormDB *gorm.DB) TestUserModel {"))
 }

@@ -31,7 +31,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
         // w.Header().Set("Connection", "keep-alive")
 		client := make(chan {{.ResponseType}}, 16)
 
-        l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+        l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx, r, &w)
         threading.GoSafeCtx(r.Context(), func() {
             defer close(client)
             err := l.{{.Call}}({{if .HasRequest}}&req, {{end}}client)

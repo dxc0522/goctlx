@@ -4,21 +4,26 @@
 package {{.pkgName}}
 
 import (
+	"net/http"
 	{{.imports}}
 )
 
 type {{.logic}} struct {
 	logx.Logger
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
+	*svc.ServiceContext
+	ctx        context.Context
+	reqCtx     *http.Request
+	respWriter *http.ResponseWriter
 }
 
 {{if .hasDoc}}{{.doc}}{{end}}
-func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
+func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, r *http.Request, w *http.ResponseWriter) *{{.logic}} {
 	return &{{.logic}}{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		Logger:     logx.WithContext(ctx),
+		ServiceContext: svcCtx,
+		ctx:        ctx,
+		reqCtx:     r,
+		respWriter: w,
 	}
 }
 

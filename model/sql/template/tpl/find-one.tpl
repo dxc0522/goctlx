@@ -24,3 +24,33 @@ func (m *default{{.upperStartCamelObject}}Model) FindOne(ctx context.Context, {{
 		return nil, err
 	}{{end}}
 }
+
+func (m *default{{.upperStartCamelObject}}Model) FirstGorm(ctx context.Context, conditions string, args ...interface{}) (*{{.upperStartCamelObject}}, error) {
+	var resp {{.upperStartCamelObject}}
+	err := m.gormDB.WithContext(ctx).Where(conditions, args...).First(&resp).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (m *default{{.upperStartCamelObject}}Model) FindCountGorm(ctx context.Context, conditions string, args ...interface{}) (int64, error) {
+	var count int64
+	err := m.gormDB.WithContext(ctx).Model(&{{.upperStartCamelObject}}{}).Where(conditions, args...).Count(&count).Error
+	return count, err
+}
+
+func (m *default{{.upperStartCamelObject}}Model) FindALLGorm(ctx context.Context, conditions string, args ...interface{}) ([]*{{.upperStartCamelObject}}, error) {
+	var resp []*{{.upperStartCamelObject}}
+	err := m.gormDB.WithContext(ctx).Where(conditions, args...).Find(&resp).Error
+	return resp, err
+}
+
+func (m *default{{.upperStartCamelObject}}Model) FindListGorm(ctx context.Context, limit, offset int64, sorts, conditions string, args ...interface{}) ([]*{{.upperStartCamelObject}}, error) {
+	var resp []*{{.upperStartCamelObject}}
+	err := m.gormDB.WithContext(ctx).Where(conditions, args...).Order(sorts).Limit(int(limit)).Offset(int(offset)).Find(&resp).Error
+	return resp, err
+}

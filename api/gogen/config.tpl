@@ -3,10 +3,14 @@
 
 package config
 
-import {{.authImport}}
+import (
+	"github.com/zeromicro/go-zero/rest"
+	{{.authImport}}
+)
 
 type Config struct {
 	rest.RestConf
+	AppMode string `json:",env=APP_MODE,default=LOCAL"`
 	{{.auth}}
 	{{.jwtTrans}}
 }

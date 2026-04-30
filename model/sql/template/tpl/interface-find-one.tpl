@@ -1,1 +1,5 @@
-FindOne(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)
+	FindOne(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)
+	FirstGorm(ctx context.Context, conditions string, args ...interface{}) (*{{.upperStartCamelObject}}, error)
+	FindCountGorm(ctx context.Context, conditions string, args ...interface{}) (int64, error)
+	FindALLGorm(ctx context.Context, conditions string, args ...interface{}) ([]*{{.upperStartCamelObject}}, error)
+	FindListGorm(ctx context.Context, limit, offset int64, sorts, conditions string, args ...interface{}) ([]*{{.upperStartCamelObject}}, error)
