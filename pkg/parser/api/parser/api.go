@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/dxc0522/goctlx/pkg/parser/api/ast"
 	"github.com/dxc0522/goctlx/pkg/parser/api/importstack"
 	"github.com/dxc0522/goctlx/pkg/parser/api/placeholder"
 	"github.com/dxc0522/goctlx/pkg/parser/api/token"
-	"github.com/zeromicro/go-zero/core/lang"
 )
 
 const (
@@ -284,7 +284,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 		}
 		// import cycle check
 		if err := api.importManager.Push(impPath); err != nil {
-			return nil, ast.SyntaxError(tok.Position, err.Error())
+			return nil, ast.SyntaxError(tok.Position, "%s", err.Error())
 		}
 
 		if _, ok := api.importSet[impPath]; ok {

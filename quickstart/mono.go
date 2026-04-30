@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/dxc0522/goctlx/api/gogen"
 	"github.com/dxc0522/goctlx/pkg/golang"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 var (

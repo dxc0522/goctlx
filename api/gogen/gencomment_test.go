@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/dxc0522/goctlx/internal/version"
 )
 
 // TestGenerationComments verifies that all generated files have appropriate generation comments

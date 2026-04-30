@@ -159,9 +159,9 @@ func Test_getFirstUsableString(t *testing.T) {
 		// This is the actual bug scenario from issue #5229
 		atDocText := "Check server health status."
 		handlerName := "HealthCheck"
-
+		
 		result := getFirstUsableString(atDocText, handlerName)
-		assert.Equal(t, "Check server health status.", result,
+		assert.Equal(t, "Check server health status.", result, 
 			"should use @doc text for API summary")
 	})
 
@@ -169,27 +169,28 @@ func Test_getFirstUsableString(t *testing.T) {
 		// When @doc is empty, should fall back to handler name
 		atDocText := ""
 		handlerName := "HealthCheck"
-
+		
 		result := getFirstUsableString(atDocText, handlerName)
-		assert.Equal(t, "HealthCheck", result,
+		assert.Equal(t, "HealthCheck", result, 
 			"should fallback to handler name when @doc is empty")
 	})
 
 	t.Run("complex summary with special characters", func(t *testing.T) {
 		result := getFirstUsableString("Get user by ID: /users/{id}")
-		assert.Equal(t, "Get user by ID: /users/{id}", result,
+		assert.Equal(t, "Get user by ID: /users/{id}", result, 
 			"should handle special characters in plain strings")
 	})
 
 	t.Run("multiline string", func(t *testing.T) {
 		result := getFirstUsableString("Line 1\nLine 2")
-		assert.Equal(t, "Line 1\nLine 2", result,
+		assert.Equal(t, "Line 1\nLine 2", result, 
 			"should handle multiline strings")
 	})
 
 	t.Run("unicode characters", func(t *testing.T) {
 		result := getFirstUsableString("健康检查", "HealthCheck")
-		assert.Equal(t, "健康检查", result,
+		assert.Equal(t, "健康检查", result, 
 			"should handle unicode characters")
 	})
 }
+

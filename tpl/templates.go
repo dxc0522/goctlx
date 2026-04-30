@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/dxc0522/goctlx/api/apigen"
 	"github.com/dxc0522/goctlx/api/gogen"
 	apinew "github.com/dxc0522/goctlx/api/new"
@@ -14,9 +17,6 @@ import (
 	modelgen "github.com/dxc0522/goctlx/model/sql/gen"
 	rpcgen "github.com/dxc0522/goctlx/rpc/generator"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/core/errorx"
 )
 
 const templateParentPath = "/"

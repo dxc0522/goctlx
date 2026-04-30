@@ -1,7 +1,7 @@
-func new{{.upperStartCamelObject}}Model(db *gorm.DB{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) *default{{.upperStartCamelObject}}Model {
+func new{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) *default{{.upperStartCamelObject}}Model {
 	return &default{{.upperStartCamelObject}}Model{
-		db:    db,
-		table: {{.table}},
+		{{if .withCache}}CachedConn: sqlc.NewConn(conn, c, opts...){{else}}conn:conn{{end}},
+		table:      {{.table}},
 	}
 }
 

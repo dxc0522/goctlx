@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/zeromicro/ddl-parser/parser"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/pkg/env"
-	"github.com/zeromicro/ddl-parser/parser"
 )
 
 var unsignedTypeMap = map[string]string{
@@ -293,24 +293,24 @@ func mayConvertNullType(goDataType string, isDefaultNull, unsigned, strict bool)
 
 	switch goDataType {
 	case "int64":
-		return "*int64"
+		return "sql.NullInt64"
 	case "int32":
-		return "*int32"
+		return "sql.NullInt32"
 	case "float64":
-		return "*float64"
+		return "sql.NullFloat64"
 	case "bool":
-		return "*bool"
+		return "sql.NullBool"
 	case "string":
-		return "*string"
+		return "sql.NullString"
 	case "time.Time":
-		return "*time.Time"
+		return "sql.NullTime"
 	default:
 		if unsigned {
 			ret, ok := unsignedTypeMap[goDataType]
 			if ok {
-				return "*" + ret
+				return ret
 			}
 		}
-		return "*" + goDataType
+		return goDataType
 	}
 }

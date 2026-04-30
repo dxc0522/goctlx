@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/iancoleman/strcase"
+	"github.com/dxc0522/goctlx/api/spec"
 )
 
 var (

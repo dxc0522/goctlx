@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/gookit/color"
+	"github.com/dxc0522/goctlx/internal/version"
 )
 
 // NL defines a new line.

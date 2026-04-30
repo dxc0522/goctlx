@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-
 	"github.com/dxc0522/goctlx/rpc/generator"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/console"
@@ -99,6 +98,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
 	ctx.NameFromFilename = VarBoolNameFromFilename
+	ctx.ProtoPaths = []string{filepath.Dir(src)}
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

@@ -1,8 +1,8 @@
 package swagger
 
 import (
-	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/go-openapi/spec"
+	apiSpec "github.com/dxc0522/goctlx/api/spec"
 )
 
 func definitionsFromTypes(ctx Context, types []apiSpec.Type) spec.Definitions {

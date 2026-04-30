@@ -1,4 +1,4 @@
-//go:build linux || darwin
+//go:build linux || darwin || freebsd
 
 package migrate
 
@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dxc0522/goctlx/util/console"
 	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/dxc0522/goctlx/util/console"
 )
 
 func cancelOnSignals() {

@@ -5,9 +5,9 @@ import (
 	"path"
 	"strings"
 
+	"github.com/go-openapi/spec"
 	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/util/stringx"
-	"github.com/go-openapi/spec"
 )
 
 func spec2Paths(ctx Context, srv apiSpec.Service) *spec.Paths {

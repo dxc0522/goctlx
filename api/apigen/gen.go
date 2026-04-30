@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dxc0522/goctlx/util"
-	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+	"github.com/dxc0522/goctlx/util"
+	"github.com/dxc0522/goctlx/util/pathx"
 )
 
 //go:embed api.tpl
@@ -34,20 +34,8 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 	if len(apiFile) == 0 {
 		return errors.New("missing -o")
 	}
-	// 查找本地文件
-	baseName := pathx.FileNameWithoutExt(filepath.Base(apiFile))
-	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
-		baseName = baseName[:len(baseName)-4]
-	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
-		baseName = baseName[:len(baseName)-3]
-	}
 
-	if err := pathx.MkdirIfNotExist(baseName); err != nil {
-		return err
-	}
-
-	finalApiFile := filepath.Join(baseName, baseName+".api")
-	fp, err := pathx.CreateIfNotExist(finalApiFile)
+	fp, err := pathx.CreateIfNotExist(apiFile)
 	if err != nil {
 		return err
 	}
@@ -69,11 +57,18 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	baseName := pathx.FileNameWithoutExt(filepath.Base(apiFile))
+	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
+		baseName = baseName[:len(baseName)-4]
+	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
+		baseName = baseName[:len(baseName)-3]
+	}
+
 	t := template.Must(template.New("etcTemplate").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"gitUser":     getGitName(),
 		"gitEmail":    getGitEmail(),
-		"serviceName": baseName,
+		"serviceName": baseName + "-api",
 	}); err != nil {
 		return err
 	}

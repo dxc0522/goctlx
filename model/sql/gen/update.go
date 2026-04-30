@@ -4,11 +4,11 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/dxc0522/goctlx/model/sql/template"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/dxc0522/goctlx/util/stringx"
-	"github.com/zeromicro/go-zero/core/collection"
 )
 
 func genUpdate(table Table, withCache, postgreSql bool) (
@@ -61,7 +61,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 		return "", "", err
 	}
 
-	output, err := util.With("update").Parse(text).Execute(
+	output, err := util.With("update").Parse(text).AddFunc("hasField", hasField(table)).Execute(
 		map[string]any{
 			"withCache":             withCache,
 			"containsIndexCache":    table.ContainsUniqueCacheKey,
@@ -94,7 +94,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 		return "", "", err
 	}
 
-	updateMethodOutput, err := util.With("updateMethod").Parse(text).Execute(
+	updateMethodOutput, err := util.With("updateMethod").Parse(text).AddFunc("hasField", hasField(table)).Execute(
 		map[string]any{
 			"upperStartCamelObject": camelTableName,
 			"data":                  table,

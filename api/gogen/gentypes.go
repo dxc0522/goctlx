@@ -9,13 +9,13 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/dxc0522/goctlx/api/spec"
 	apiutil "github.com/dxc0522/goctlx/api/util"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/internal/version"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/format"
-	"github.com/zeromicro/go-zero/core/collection"
 )
 
 const typesFile = "types"

@@ -1,10 +1,11 @@
+// Code scaffolded by goctl. Safe to edit.
+// goctl {{.version}}
+
 package main
 
 import (
 	"flag"
 	"fmt"
-	"os"
-	"vibrahealth/services/pkg/provide"
 
 	{{.importPackages}}
 )
@@ -15,17 +16,14 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c, conf.UseEnv())
-    server := rest.MustNewServer(c.RestConf)
-    defer server.Stop()
+	conf.MustLoad(*configFile, &c)
 
-    ctx, err := svc.NewServiceContext(c)
-    if err != nil {
-		fmt.Printf("NewServiceContext err: %v", err)
-        os.Exit(0)
-    }
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
 
-    handler.RegisterHandlers(server, ctx)
+	ctx := svc.NewServiceContext(c)
+	handler.RegisterHandlers(server, ctx)
 
-	provide.ServerSetup(server, c.RestConf)
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
 }

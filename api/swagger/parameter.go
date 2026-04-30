@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/go-openapi/spec"
+	apiSpec "github.com/dxc0522/goctlx/api/spec"
 )
 
 func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
@@ -72,6 +72,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 				SimpleSchema: spec.SimpleSchema{
 					Type:    sampleTypeFromGoType(ctx, member.Type),
 					Default: defValueFromOptions(ctx, headerTag.Options, member.Type),
+					Example: exampleValueFromOptions(ctx, headerTag.Options, member.Type),
 					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
@@ -96,6 +97,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 				SimpleSchema: spec.SimpleSchema{
 					Type:    sampleTypeFromGoType(ctx, member.Type),
 					Default: defValueFromOptions(ctx, pathParameterTag.Options, member.Type),
+					Example: exampleValueFromOptions(ctx, pathParameterTag.Options, member.Type),
 					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
@@ -121,6 +123,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 					SimpleSchema: spec.SimpleSchema{
 						Type:    sampleTypeFromGoType(ctx, member.Type),
 						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Example: exampleValueFromOptions(ctx, formTag.Options, member.Type),
 						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{
@@ -143,6 +146,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 					SimpleSchema: spec.SimpleSchema{
 						Type:    sampleTypeFromGoType(ctx, member.Type),
 						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Example: exampleValueFromOptions(ctx, formTag.Options, member.Type),
 						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{

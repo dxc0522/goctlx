@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/model/sql/gen"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/stretchr/testify/assert"
 )
 
 var (

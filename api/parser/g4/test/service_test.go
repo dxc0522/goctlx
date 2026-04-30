@@ -3,9 +3,9 @@ package test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/api/parser/g4/ast"
 	"github.com/dxc0522/goctlx/api/parser/g4/gen/api"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBody(t *testing.T) {

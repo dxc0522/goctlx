@@ -8,6 +8,9 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/dxc0522/goctlx/api"
 	"github.com/dxc0522/goctlx/bug"
 	"github.com/dxc0522/goctlx/config"
@@ -23,9 +26,6 @@ import (
 	"github.com/dxc0522/goctlx/rpc"
 	"github.com/dxc0522/goctlx/tpl"
 	"github.com/dxc0522/goctlx/upgrade"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/withfig/autocomplete-tools/integrations/cobra"
 )
 
 const (

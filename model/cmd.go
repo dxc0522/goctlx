@@ -4,7 +4,6 @@ import (
 	"github.com/dxc0522/goctlx/internal/cobrax"
 	"github.com/dxc0522/goctlx/model/mongo"
 	"github.com/dxc0522/goctlx/model/sql/command"
-	"github.com/dxc0522/goctlx/model/structx"
 )
 
 var (
@@ -16,7 +15,6 @@ var (
 	pgCmd           = cobrax.NewCommand("pg", cobrax.WithRunE(command.PostgreSqlDataSource))
 	pgDatasourceCmd = cobrax.NewCommand("datasource", cobrax.WithRunE(command.PostgreSqlDataSource))
 	mongoCmd        = cobrax.NewCommand("mongo", cobrax.WithRunE(mongo.Action))
-	structCmd       = cobrax.NewCommand("struct", cobrax.WithRunE(structx.Action))
 )
 
 func init() {
@@ -25,7 +23,6 @@ func init() {
 		datasourceCmdFlags   = datasourceCmd.Flags()
 		pgDatasourceCmdFlags = pgDatasourceCmd.Flags()
 		mongoCmdFlags        = mongoCmd.Flags()
-		structCmdFlags       = structCmd.Flags()
 	)
 
 	ddlCmdFlags.StringVarP(&command.VarStringSrc, "src", "s")
@@ -78,15 +75,7 @@ func init() {
 		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 	mysqlCmd.PersistentFlags().StringVarPWithDefaultValue(&command.VarStringCachePrefix, "prefix", "p", "cache")
 
-	// 添加 struct 命令标志
-	structCmdFlags.StringVar(&structx.VarStringDSN, "dsn")
-	structCmdFlags.StringVarP(&structx.VarStringTable, "table", "t")
-	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringDialect, "dialect", "l", "mysql")
-	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringDir, "dir", "d", "dbmodels")
-	structCmdFlags.StringVarPWithDefaultValue(&structx.VarStringPkg, "package", "p", "dbmodels")
-	structCmdFlags.StringVar(&structx.VarStringDBName, "database")
-
 	mysqlCmd.AddCommand(datasourceCmd, ddlCmd)
 	pgCmd.AddCommand(pgDatasourceCmd)
-	Cmd.AddCommand(mysqlCmd, mongoCmd, pgCmd, structCmd)
+	Cmd.AddCommand(mysqlCmd, mongoCmd, pgCmd)
 }

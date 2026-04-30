@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // MaybeCreateFile creates file if not exists

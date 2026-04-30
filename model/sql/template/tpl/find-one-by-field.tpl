@@ -17,11 +17,12 @@ func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}(ctx co
 		return nil, err
 	}
 }{{else}}var resp {{.upperStartCamelObject}}
-	err := m.db.WithContext(ctx).Table(m.table).Where("{{.originalField}}", {{.lowerStartCamelField}}).First(&resp).Error
+	query := fmt.Sprintf("select %s from %s where {{.originalField}} limit 1", {{.lowerStartCamelObject}}Rows, m.table )
+	err := m.conn.QueryRowCtx(ctx, &resp, query, {{.lowerStartCamelField}})
 	switch err {
 	case nil:
 		return &resp, nil
-	case gorm.ErrRecordNotFound:
+	case sqlx.ErrNotFound:
 		return nil, ErrNotFound
 	default:
 		return nil, err

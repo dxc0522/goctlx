@@ -1,17 +1,9 @@
-// 插入{{.upperStartCamelObject}}记录
-func (m *default{{.upperStartCamelObject}}Model) Insert(ctx context.Context, in *{{.upperStartCamelObject}}) error {
-	err := m.db.WithContext(ctx).Table(m.table).Create(in).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// 插入{{.upperStartCamelObject}}记录
-func (m *default{{.upperStartCamelObject}}Model) InsertBatch(ctx context.Context, in ...*{{.upperStartCamelObject}}) (int64, error) {
-	result := m.db.WithContext(ctx).Table(m.table).CreateInBatches(in, len(in))
-	if result.Error != nil {
-		return 0, result.Error
-	}
-	return result.RowsAffected, nil
+func (m *default{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data *{{.upperStartCamelObject}}) (sql.Result,error) {
+	{{if .withCache}}{{.keys}}
+    ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, {{.expressionValues}})
+	}, {{.keyValues}}){{else}}query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
+    ret,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
+	return ret,err
 }

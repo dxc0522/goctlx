@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/dxc0522/goctlx/api/gogen"
 	conf "github.com/dxc0522/goctlx/config"
 	"github.com/dxc0522/goctlx/util"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/spf13/cobra"
 )
 
 //go:embed api.tpl

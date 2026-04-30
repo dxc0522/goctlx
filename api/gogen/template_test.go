@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dxc0522/goctlx/util/pathx"
 	"github.com/stretchr/testify/assert"
+	"github.com/dxc0522/goctlx/util/pathx"
 )
 
 func TestGenTemplates(t *testing.T) {

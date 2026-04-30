@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/model/sql/model"
 	"github.com/dxc0522/goctlx/model/sql/util"
 	"github.com/dxc0522/goctlx/util/pathx"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParsePlainText(t *testing.T) {

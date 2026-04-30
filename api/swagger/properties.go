@@ -1,8 +1,8 @@
 package swagger
 
 import (
-	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/go-openapi/spec"
+	apiSpec "github.com/dxc0522/goctlx/api/spec"
 )
 
 func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []string) {

@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dxc0522/goctlx/api/gogen"
-	"github.com/dxc0522/goctlx/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/dxc0522/goctlx/api/gogen"
+	"github.com/dxc0522/goctlx/config"
 )
 
 func TestDoGenProjectWithModule_Integration(t *testing.T) {

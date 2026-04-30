@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/pkg/parser/api/assertx"
 	"github.com/dxc0522/goctlx/pkg/parser/api/ast"
 	"github.com/dxc0522/goctlx/pkg/parser/api/token"
-	"github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata/comment_test.api
@@ -762,6 +762,11 @@ func TestParser_Parse_service(t *testing.T) {
 								}),
 							},
 							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
 								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
 									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),

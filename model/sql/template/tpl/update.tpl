@@ -1,17 +1,14 @@
-// 更新{{.upperStartCamelObject}}记录
-func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, in *{{.upperStartCamelObject}}) error {
-	err := m.db.WithContext(ctx).Table(m.table).Updates(in).Error
-	if err != nil {
+func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, {{if .containsIndexCache}}newData{{else}}data{{end}} *{{.upperStartCamelObject}}) error {
+	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne(ctx, newData.{{.upperStartCamelPrimaryKey}})
+	if err!=nil{
 		return err
 	}
-	return nil
-}
 
-// 更新{{.upperStartCamelObject}}记录
-func (m *default{{.upperStartCamelObject}}Model) Save(ctx context.Context, in *{{.upperStartCamelObject}}) error {
-	err := m.db.WithContext(ctx).Table(m.table).Save(in).Error
-	if err != nil {
-		return err
-	}
-	return nil
+{{end}}	{{.keys}}
+    _, {{if .containsIndexCache}}err{{else}}err:{{end}}= m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
+		return conn.ExecCtx(ctx, query, {{.expressionValues}})
+	}, {{.keyValues}}){{else}}query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
+    _,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
+	return err
 }

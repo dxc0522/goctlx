@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-openapi/spec"
 	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/internal/version"
-	"github.com/go-openapi/spec"
 )
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {

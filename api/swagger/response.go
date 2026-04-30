@@ -3,8 +3,8 @@ package swagger
 import (
 	"net/http"
 
-	apiSpec "github.com/dxc0522/goctlx/api/spec"
 	"github.com/go-openapi/spec"
+	apiSpec "github.com/dxc0522/goctlx/api/spec"
 )
 
 func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *spec.Responses {

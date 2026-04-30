@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/pkg/parser/api/assertx"
 	"github.com/dxc0522/goctlx/pkg/parser/api/parser"
-	"github.com/stretchr/testify/assert"
 )
 
 type formatData struct {

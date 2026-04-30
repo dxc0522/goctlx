@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/pkg/parser/api/ast"
 	"github.com/dxc0522/goctlx/pkg/parser/api/importstack"
 	"github.com/dxc0522/goctlx/pkg/parser/api/placeholder"
 	"github.com/dxc0522/goctlx/pkg/parser/api/token"
-	"github.com/zeromicro/go-zero/core/lang"
 )
 
 // Analyzer analyzes the ast and converts it to spec.

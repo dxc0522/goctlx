@@ -3,9 +3,9 @@ package generator
 import (
 	"testing"
 
-	"github.com/dxc0522/goctlx/rpc/parser"
 	"github.com/emicklei/proto"
 	"github.com/stretchr/testify/assert"
+	"github.com/dxc0522/goctlx/rpc/parser"
 )
 
 func TestServiceNameDetermination(t *testing.T) {

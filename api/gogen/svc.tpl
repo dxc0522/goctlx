@@ -1,3 +1,6 @@
+// Code scaffolded by goctl. Safe to edit.
+// goctl {{.version}}
+
 package svc
 
 import (
@@ -9,9 +12,9 @@ type ServiceContext struct {
 	{{.middleware}}
 }
 
-func NewServiceContext(c {{.config}}) (*ServiceContext, error) {
+func NewServiceContext(c {{.config}}) *ServiceContext {
 	return &ServiceContext{
 		Config: c,
 		{{.middlewareAssignment}}
-	}, nil
+	}
 }

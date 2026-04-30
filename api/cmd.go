@@ -1,9 +1,6 @@
 package api
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/spf13/cobra"
 
 	"github.com/dxc0522/goctlx/api/apigen"
@@ -74,10 +71,8 @@ func init() {
 	formatCmdFlags.BoolVar(&format.VarBoolUseStdin, "stdin")
 	formatCmdFlags.BoolVar(&format.VarBoolSkipCheckDeclare, "declare")
 
-	currentDir, _ := os.Getwd()
-	defaultApiFile := filepath.Join(currentDir, filepath.Base(currentDir)+".api")
-	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringDir, "dir", ".")
-	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringAPI, "api", defaultApiFile)
+	goCmdFlags.StringVar(&gogen.VarStringDir, "dir")
+	goCmdFlags.StringVar(&gogen.VarStringAPI, "api")
 	goCmdFlags.StringVar(&gogen.VarStringHome, "home")
 	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
 	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/dxc0522/goctlx/api/spec"
 	"github.com/dxc0522/goctlx/pkg/parser/api/assertx"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_Parse(t *testing.T) {
