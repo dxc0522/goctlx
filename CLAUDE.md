@@ -47,12 +47,15 @@ bash compare/compare.sh
 1. `Generator` 结构体（`api/gogen/`、`rpc/generator/`、`model/sql/gen/`）持有配置和输出目录
 2. 模板通过 `//go:embed` 嵌入同目录下的 `.tpl` 文件
 3. `genFile()` 根据 `config.Config.NamingFormat` 决定输出文件名大小写风格
-4. 用户可通过 `~/.goctl/` 或 `--home` 参数覆盖任意模板
+4. `pathx.LoadTemplate` 始终使用嵌入模板（`~/.goctl/` 磁盘模板不再被加载）
 
 ### 核心定制点（修改时需保持这些特性）
 
-**Model 层 — sqlx + GORM 双轨：**
-生成的 Model 同时持有 `sqlx.SqlConn`（原始 SQL / 缓存查询）和 `*gorm.DB`。`model/sql/template/tpl/` 中的模板同时生成 `FindOne`（sqlx 原始 SQL）和 `FirstGorm`/`FindALLGorm`/`FindListGorm`/`FindCountGorm`/`InsertGorm` 等方法。`ErrNotFound` 映射为 `gorm.ErrRecordNotFound`。
+**Model 层 — GORM 优先：**
+生成的 Model 结构体同时持有 `sqlx.SqlConn`（基础设施连接）和 `*gorm.DB`，但所有 CRUD 方法均通过 GORM 实现，集中在 `customized.tpl` 中生成。方法无 `Gorm` 后缀：`FindOne`、`FindOneByConditions`、`FindCount`、`FindAll`、`FindList`、`FindPageWithCount`、`Insert`、`InsertBatch`、`Update`、`UpdateFields`、`Delete`、`DeleteBatch`。写操作（Insert/InsertBatch/Update）自动通过 `invalidateCache` 清除主键和唯一索引缓存。`ErrNotFound` 通过 `errors.Is(err, gorm.ErrRecordNotFound)` 映射。sqlx 原始 CRUD 模板文件（`find-one.tpl`、`insert.tpl` 等）已清空为占位符。
+
+**模板加载 — 嵌入优先：**
+`pathx.LoadTemplate` 始终使用 `//go:embed` 嵌入的模板，**不再检查** `~/.goctl/` 目录。这确保项目嵌入的模板始终生效，不会被磁盘上的旧模板覆盖。
 
 **Logic 层 — 注入 HTTP 原始对象：**
 `api/gogen/logic.tpl` 生成的 logic 结构体包含 4 个字段：`ctx`、`ServiceContext`、`reqCtx *http.Request`、`respWriter *http.ResponseWriter`。Handler 模板将 `r` 和 `&w` 传入 logic 构造函数。
@@ -84,4 +87,6 @@ bash compare/compare.sh
 - `vendor/` 目录已提交。修改 `go.mod` 依赖后需执行 `go mod vendor`。
 - 模板使用 Go `text/template` 语法。编辑模板前先确认对应 `gen*.go` 传入了哪些变量。
 - Model 模板中的 `hasField` 辅助函数已被有意移除，不要重新引入。
-- 修改 Model 模板时，sqlx 路径和 GORM 路径必须同时保持可用。`{{if .withCache}}` 分支尤其敏感——cache 和 no-cache 两种情况都要测试。
+- 修改 Model 模板时，`{{if .withCache}}` 分支尤其敏感——cache 和 no-cache 两种情况都要测试。
+- `pathx.LoadTemplate` 始终使用嵌入模板，`~/.goctl/` 目录下的模板文件**不会被加载**。如需自定义模板输出，直接修改 `model/sql/template/tpl/*.tpl` 文件。
+- Model 的 CRUD 方法全部通过 GORM 实现（在 `customized.tpl` 中），sqlx CRUD 模板文件（`find-one.tpl`、`insert.tpl`、`update.tpl`、`delete.tpl` 等）为空占位符，不要在其中添加代码。

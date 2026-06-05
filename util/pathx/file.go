@@ -213,23 +213,12 @@ func Clean(category string) error {
 }
 
 // LoadTemplate gets template content by the specified file.
+// LoadTemplate always returns the builtin (embedded) template directly,
+// bypassing the ~/.goctl/ home directory entirely. This ensures the project's
+// embedded templates always take priority over any stale or customized
+// templates on disk.
 func LoadTemplate(category, file, builtin string) (string, error) {
-	dir, err := GetTemplateDir(category)
-	if err != nil {
-		return "", err
-	}
-
-	file = filepath.Join(dir, file)
-	if !FileExists(file) {
-		return builtin, nil
-	}
-
-	content, err := os.ReadFile(file)
-	if err != nil {
-		return "", err
-	}
-
-	return string(content), nil
+	return builtin, nil
 }
 
 // SameFile compares the between path if the same path,

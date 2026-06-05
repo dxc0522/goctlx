@@ -4,8 +4,8 @@ type (
 	}
 
 	default{{.upperStartCamelObject}}Model struct {
-		{{if .withCache}}sqlc.CachedConn{{else}}conn sqlx.SqlConn{{end}}
 		gormDB *gorm.DB
+		{{if .withCache}}cacheClient cache.Cache{{end}}
 		table string
 	}
 

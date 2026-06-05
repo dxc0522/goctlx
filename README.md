@@ -11,15 +11,19 @@
 
 ### 架构级变更
 
-- **数据访问层 sqlx → GORM：** 生成的 Model 同时支持原始 SQL（sqlx）和 GORM 查询，消除手工 SQL 拼接，多数据库支持更自然
+- **数据访问层 sqlx → GORM：** 生成的 Model 所有 CRUD 方法均通过 GORM 实现，消除手工 SQL 拼接，多数据库支持更自然
 - **Logic 层注入 HTTP 对象：** Logic 结构体包含 `*http.Request` 和 `*http.ResponseWriter`，可直接操作请求/响应
 - **ServiceContext 返回 error：** `NewServiceContext` 支持返回错误，配合 `defer server.Stop()` 实现优雅启动/关闭
 - **配置支持环境变量覆盖：** 引入 `conf.UseEnv()`，新增 `AppMode` 字段（`env=APP_MODE`）
 
 ### Model 生成增强
 
-- **查询 API 扩展：** 新增 `FirstGorm`（条件查询首条）、`FindCountGorm`（计数）、`FindALLGorm`（全量）、`FindListGorm`（分页+排序）
-- **批量操作：** 新增 `InsertGorm`（单条/批量插入）、`Save`（upsert）
+- **GORM 优先模式：** 所有 CRUD 方法均通过 GORM 实现，集中在 `customized.tpl` 中生成，无 `Gorm` 后缀
+- **查询 API（6 个）：** `FindOne`（主键查询）、`FindOneByConditions`（条件首条）、`FindCount`（计数）、`FindAll`（全量）、`FindList`（分页）、`FindPageWithCount`（分页+总数）
+- **写入 API（6 个）：** `Insert`、`InsertBatch`（批量插入）、`Update`（全量更新）、`UpdateFields`（部分更新）、`Delete`（主键删除）、`DeleteBatch`（条件批量删除）
+- **写操作自动清缓存：** `Insert`/`InsertBatch`/`Update` 写入后自动清除主键和唯一索引缓存
+- **统一错误处理：** 所有查询方法将 `gorm.ErrRecordNotFound` 映射为 `ErrNotFound`
+- **模板嵌入优先：** `pathx.LoadTemplate` 始终使用项目嵌入模板，`~/.goctl/` 目录不再被加载
 - **JSON 标签自动生成：** 每个字段自动添加 `json:"field_name,omitempty"`
 
 ### CLI 智能默认值
