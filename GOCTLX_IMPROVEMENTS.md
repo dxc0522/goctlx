@@ -6,7 +6,7 @@
 
 ## 一、项目背景
 
-`goctlx` (github.com/dxc0522/goctlx) 是基于 `go-zero v1.9.4` 的增强版脚手架工具。它在保留 go-zero 原有功能的基础上，对默认模板、文件生成逻辑、数据访问层和目录结构进行了深度定制，并新增了多项实用功能。
+`goctlx` (github.com/dxc0522/goctlx) 是基于 `go-zero v1.10.1` 的增强版脚手架工具。它在保留 go-zero 原有功能的基础上，对默认模板、文件生成逻辑、数据访问层和目录结构进行了深度定制，并新增了多项实用功能。
 
 ---
 
@@ -119,11 +119,7 @@ type User struct {
 }
 ```
 
-### 3.4 移除 `hasField` 模板辅助函数
-
-原始 go-zero 在模板中注入 `hasField` 闭包用于条件渲染。goctlx 移除该函数及其所有调用点（涉及 `gen.go`、`findone.go`、`findonebyfield.go`、`update.go`、`imports.go`），简化了模板执行流程。
-
-### 3.5 Handler 文件名改为 `_gen.go` 后缀
+### 3.4 Handler 文件名改为 `_gen.go` 后缀
 
 go-zero 生成的 handler 文件名为 `<name>.go`，goctlx 改为 `<name>_gen.go`，遵循 Go 社区约定（`*_gen.go` 表示自动生成，不应手动编辑）。
 
@@ -131,34 +127,7 @@ go-zero 生成的 handler 文件名为 `<name>.go`，goctlx 改为 `<name>_gen.g
 
 ## 四、全新功能
 
-### 4.1 `model struct` 子命令：数据库直连生成 GORM 结构体
-
-这是最大的功能新增（`model/structx/structx.go`，518 行）。从零开发，原始 go-zero 没有此功能。
-
-**能力：**
-- 直连 MySQL / PostgreSQL 数据库，读取 `information_schema` / `pg_catalog`
-- 自动发现所有用户表，或通过 `--table` 过滤
-- 生成带完整 GORM 标签的 struct：`gorm:"column:xxx;primaryKey;autoIncrement;comment:xxx"`
-- 同时生成 JSON 标签：`json:"xxx,omitempty"`
-- 可空列映射为指针类型（`*int64`、`*time.Time`），非空为值类型
-- 自动生成 `TableName()` 方法（实现 `gorm.Tabler` 接口）
-- 输出文件命名：`<table_snake_case>_gen.go`
-
-**用法：**
-```bash
-goctlx model struct --dsn "mysql://user:pass@tcp(host:3306)/db" --table users,orders
-goctlx model struct --dsn "postgres://user:pass@host:5432/db" --dialect postgres
-```
-
-**依赖新增：**
-- `github.com/go-sql-driver/mysql`（直接依赖，用于 DSN 解析）
-- `github.com/lib/pq`（直接依赖，用于 PostgreSQL 驱动注册）
-
-### 4.2 `migrate proxy`：Go 模块代理自动解析
-
-新增 `migrate/proxy.go`（45 行），自动解析 `go env GOPROXY` 并确保 `https://goproxy.cn` 在代理列表中，保证中国大陆地区模块下载可靠性。
-
-### 4.3 结构化错误响应
+### 4.1 结构化错误响应
 
 Handler 中新增 `httpx2.ResponseError` 类型检测，支持返回携带自定义状态码和结构化数据的错误响应。
 
@@ -214,8 +183,6 @@ Handler 中新增 `httpx2.ResponseError` 类型检测，支持返回携带自定
 
 ```
 goctlx/
-├── model/structx/structx.go    # [新增] 数据库直连生成 GORM 结构体
-├── migrate/proxy.go            # [新增] GOPROXY 自动解析
 ├── internal/models/            # [新增] 预留扩展点（当前为空）
 ├── demo/                       # [新增] 示例目录
 └── README.md                   # [新增] 英文说明文档
@@ -242,12 +209,10 @@ go-zero/tools/goctl/
 | 架构 | sqlx → GORM 数据访问层迁移 | **重大** |
 | 架构 | Logic 层注入 HTTP 原始对象 | **重大** |
 | 架构 | ServiceContext 初始化可返回 error | 中等 |
-| 功能 | `model struct` 数据库直连生成结构体 | **重大** |
 | 功能 | 查询 API 从 2 个扩展到 5 个 | **重大** |
 | 功能 | 批量操作（InsertBatch/DeleteBatch/Save） | **重大** |
 | 功能 | JSON 标签自动生成 | 中等 |
 | 功能 | 结构化错误响应（ResponseError） | 中等 |
-| 功能 | migrate 代理自动解析 | 较小 |
 | CLI | `goctl api go` 智能默认值 | 中等 |
 | 模板 | Handler 文件改为 `_gen.go` 后缀 | 较小 |
 | 配置 | 环境变量覆盖 + AppMode | 中等 |
@@ -259,9 +224,9 @@ go-zero/tools/goctl/
 
 | 依赖 | go-zero | goctlx | 说明 |
 |------|---------|--------|------|
-| go-zero | v1.10.1 | v1.9.4 | 基线版本略旧 |
+| go-zero | v1.10.1 | v1.10.1 | 与上游同步 |
 | gorm.io/gorm | 无 | 有 | ORM 核心 |
-| go-sql-driver/mysql | 间接 | **直接** | structx 需要 |
+| go-sql-driver/mysql | 间接 | **直接** | 数据库驱动 |
 | lib/pq | **无** | **直接** | PostgreSQL 驱动 |
-| Go 版本 | 1.24.0 | 1.23 | 略低 |
+| Go 版本 | 1.24.0 | 1.24.0 | — |
 | cobra | v1.10.2 | v1.8.1 | 略旧 |

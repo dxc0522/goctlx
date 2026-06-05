@@ -3,32 +3,39 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/dxc0522/goctlx.svg)](https://pkg.go.dev/github.com/dxc0522/goctlx)
 [![deps.dev](https://img.shields.io/badge/deps.dev-查看依赖分析-blue)](https://deps.dev/go/github.com%2Fdxc0522%2Fgoctlx)
 
-`goctlx` 是基于 [go-zero](https://github.com/zeromicro/go-zero)
-的增强版脚手架工具，针对实际开发需求进行了深度定制。本项目优化了默认模板、文件生成逻辑和目录结构，并添加了便捷功能。
+`goctlx` 是基于 [go-zero](https://github.com/zeromicro/go-zero) v1.10.1 的增强版脚手架工具，针对实际开发需求进行了深度定制。本项目优化了默认模板、文件生成逻辑和目录结构，并添加了多项实用功能。
 
 ---
 
-## 🛠️ 主要修改与功能
+## 🛠️ 核心改进
 
-### **目录结构优化**
+### 架构级变更
 
-- 重构 `handler` 和 `logic` 生成逻辑，更符合分层架构。
-- 调整 `template` 模板细节，生成代码更简洁规范。
+- **数据访问层 sqlx → GORM：** 生成的 Model 同时支持原始 SQL（sqlx）和 GORM 查询，消除手工 SQL 拼接，多数据库支持更自然
+- **Logic 层注入 HTTP 对象：** Logic 结构体包含 `*http.Request` 和 `*http.ResponseWriter`，可直接操作请求/响应
+- **ServiceContext 返回 error：** `NewServiceContext` 支持返回错误，配合 `defer server.Stop()` 实现优雅启动/关闭
+- **配置支持环境变量覆盖：** 引入 `conf.UseEnv()`，新增 `AppMode` 字段（`env=APP_MODE`）
 
-### **功能增强**
+### Model 生成增强
 
-- **智能读取 `.api` 文件**  
-  自动以当前父级文件夹名称作为 `.api` 文件的默认来源，减少路径参数输入。
-- **默认导出到当前目录**  
-  生成的代码默认输出到当前文件夹，简化命令操作。
-- **集成 `logic new` 逻辑**  
-  支持快速生成业务逻辑层代码，提升开发效率。
+- **查询 API 扩展：** 新增 `FirstGorm`（条件查询首条）、`FindCountGorm`（计数）、`FindALLGorm`（全量）、`FindListGorm`（分页+排序）
+- **批量操作：** 新增 `InsertGorm`（单条/批量插入）、`Save`（upsert）
+- **JSON 标签自动生成：** 每个字段自动添加 `json:"field_name,omitempty"`
+
+### CLI 智能默认值
+
+- `goctlx api go` 的 `--dir` 默认 `.`，`--api` 默认 `./<父目录名>.api`，在项目目录下裸跑即可
+- `goctlx api new` 默认导出到当前目录
+- Handler 文件使用 `_gen.go` 后缀，标识自动生成代码
+
+### 其他
+
+- **结构化错误响应：** Handler 支持 `httpx2.ResponseError` 类型检测，可返回自定义状态码和结构化数据
+- **扩展钩子：** 新增 `provide.ServerSetup()` 扩展点
 
 ---
 
 ## 📦 安装方式
-
-通过以下命令一键安装：
 
 ```bash
 go install github.com/dxc0522/goctlx@latest
@@ -38,37 +45,57 @@ go install github.com/dxc0522/goctlx@latest
 
 ## 🚀 快速使用
 
-### **生成 Go API 服务**
-
-在命令中运行：
+### 生成 API 服务模板
 
 ```bash
-goctlx api demo  # 自动生成基于go-zero框架的api服务,默认生成到demo/demo.api
+goctlx api demo  # 自动生成基于 go-zero 框架的 API 服务，默认生成到 demo/demo.api
 ```
 
-### **生成 API 服务**
-
-1. 在包含 `.api` 文件的目录中运行：
+### 从 .api 文件生成代码
 
 ```bash
-goctlx api go # 自动读取[父级文件夹名称].api文件并生成代码到当前文件夹
+goctlx api go    # 自动读取 [父级文件夹名称].api 文件并生成代码到当前文件夹
+```
+
+### 生成 Model（从 DDL）
+
+```bash
+goctlx model mysql ddl --src user.sql --dir ./model
+```
+
+### 生成 Model（从数据源）
+
+```bash
+# MySQL
+goctlx model mysql datasource --url "user:pass@tcp(host:3306)/db" --table "users" --dir ./model
+
+# PostgreSQL
+goctlx model pg datasource --url "postgres://user:pass@host:5432/db?sslmode=disable" --table "users" --dir ./model
 ```
 
 ---
 
-## 📁 目录结构
+## 📁 生成项目结构
 
-```plaintext
-demo/
-    ├── config/
-    ├── etc/
-    ├── handler/
-    ├── logic/
-    ├── svc/
-    ├── types/
-    ├── demo.api
-    └── demo.go
 ```
+demo/
+├── config/        # 配置结构体
+├── etc/           # YAML 配置文件
+├── handler/       # HTTP Handler（*_gen.go）
+├── logic/         # 业务逻辑层
+├── svc/           # ServiceContext
+├── types/         # 请求/响应类型
+├── demo.api       # API 定义文件
+└── demo.go        # 入口 main.go
+```
+
+---
+
+## 📖 详细改进说明
+
+完整的相对上游 go-zero 的改进清单见 [GOCTLX_IMPROVEMENTS.md](GOCTLX_IMPROVEMENTS.md)。
+
+---
 
 ## 📄 许可证
 
