@@ -9,7 +9,7 @@ import (
 	"github.com/dxc0522/goctlx/util/pathx"
 )
 
-func genImports(table Table, withCache, timeImport bool) (string, error) {
+func genImports(table Table, withCache, timeImport, containsSqlNull bool) (string, error) {
 	var thirdImports []string
 	var m = map[string]struct{}{}
 	for _, c := range table.Fields {
@@ -29,10 +29,11 @@ func genImports(table Table, withCache, timeImport bool) (string, error) {
 		}
 
 		buffer, err := util.With("import").Parse(text).AddFunc("hasField", hasField(table)).Execute(map[string]any{
-			"time":       timeImport,
-			"containsPQ": table.ContainsPQ,
-			"data":       table,
-			"third":      strings.Join(thirdImports, "\n"),
+			"time":            timeImport,
+			"containsPQ":      table.ContainsPQ,
+			"containsSqlNull": containsSqlNull,
+			"data":            table,
+			"third":           strings.Join(thirdImports, "\n"),
 		})
 		if err != nil {
 			return "", err
@@ -47,10 +48,11 @@ func genImports(table Table, withCache, timeImport bool) (string, error) {
 	}
 
 	buffer, err := util.With("import").Parse(text).Execute(map[string]any{
-		"time":       timeImport,
-		"containsPQ": table.ContainsPQ,
-		"data":       table,
-		"third":      strings.Join(thirdImports, "\n"),
+		"time":            timeImport,
+		"containsPQ":      table.ContainsPQ,
+		"containsSqlNull": containsSqlNull,
+		"data":            table,
+		"third":           strings.Join(thirdImports, "\n"),
 	})
 	if err != nil {
 		return "", err

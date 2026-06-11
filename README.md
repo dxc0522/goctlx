@@ -25,6 +25,7 @@
 - **统一错误处理：** 所有查询方法将 `gorm.ErrRecordNotFound` 映射为 `ErrNotFound`
 - **模板嵌入优先：** `pathx.LoadTemplate` 始终使用项目嵌入模板，`~/.goctl/` 目录不再被加载
 - **JSON 标签自动生成：** 每个字段自动添加 `json:"field_name,omitempty"`
+- **`database/sql` 智能 import：** 自动检测表中是否存在 nullable 字段（`sql.NullTime`、`sql.NullString` 等），仅在需要时引入 `"database/sql"`，避免未使用 import 导致编译错误
 
 ### CLI 智能默认值
 

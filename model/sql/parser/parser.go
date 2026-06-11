@@ -265,6 +265,16 @@ func (t *Table) ContainsTime() bool {
 	return false
 }
 
+// ContainsSqlNull returns true if any field uses sql.Null* types (e.g. sql.NullTime, sql.NullString)
+func (t *Table) ContainsSqlNull() bool {
+	for _, item := range t.Fields {
+		if strings.HasPrefix(item.DataType, "sql.") {
+			return true
+		}
+	}
+	return false
+}
+
 // ConvertDataType converts mysql data type into golang data type
 func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"

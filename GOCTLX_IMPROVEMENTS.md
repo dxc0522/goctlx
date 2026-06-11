@@ -21,7 +21,7 @@
 | SQL 构建 | 手动拼接原始 SQL | GORM 自动映射 |
 | PostgreSQL 占位符 | 需手动处理 `$1` vs `?` | GORM 透明处理 |
 | 缓存嵌入 | `sqlc.CachedConn` 嵌入 model struct | 缓存分离为外部关注点 |
-| `database/sql` | 直接依赖 | 不再依赖 |
+| `database/sql` | 直接依赖 | 按需引入（nullable 字段使用 `sql.Null*` 时自动包含） |
 | 错误哨兵 | `sqlx.ErrNotFound` | `gorm.ErrRecordNotFound` |
 
 **收益：** 消除了所有手工 SQL 拼接、字段映射和占位符切换逻辑，代码更简洁，多数据库支持更自然。
@@ -128,6 +128,26 @@ type User struct {
 
 go-zero 生成的 handler 文件名为 `<name>.go`，goctlx 改为 `<name>_gen.go`，遵循 Go 社区约定（`*_gen.go` 表示自动生成，不应手动编辑）。
 
+### 3.5 `database/sql` 智能 import 检测
+
+原始 go-zero 在 `import.tpl` 和 `import-no-cache.tpl` 中无条件硬编码 `"database/sql"`，依赖 `go fmt` 清除未使用的 import（实际 `go/format` 不具备此能力）。当表含 nullable 列时，生成的 struct 使用 `sql.NullTime`、`sql.NullString` 等类型，需要 `"database/sql"`；不含 nullable 列时则不需要。
+
+goctlx 新增了 `ContainsSqlNull()` 检测方法（`parser/parser.go`），遍历所有字段判断 `DataType` 是否以 `"sql."` 开头，并在两个 import 模板中通过 `{{if .containsSqlNull}}` 条件控制引入：
+
+```go
+// parser.go
+func (t *Table) ContainsSqlNull() bool {
+    for _, item := range t.Fields {
+        if strings.HasPrefix(item.DataType, "sql.") {
+            return true
+        }
+    }
+    return false
+}
+```
+
+**效果：** 有 nullable 字段 → 自动引入 `"database/sql"`；全部 NOT NULL → 不引入，避免 `imported and not used` 编译错误。
+
 ---
 
 ## 四、全新功能
@@ -172,8 +192,8 @@ Handler 中新增 `httpx2.ResponseError` 类型检测，支持返回携带自定
 | `find-one-by-field.tpl` | **清空** | sqlx FindOneByField 移除 |
 | `find-one-by-field-extra-method.tpl` | **清空** | sqlx formatPrimary/queryPrimary 移除 |
 | `var.tpl` | 修改 | 仅保留缓存键前缀（移除 sqlx 行变量） |
-| `import.tpl` | 修改 | 精简依赖（移除不需要的标准库） |
-| `import-no-cache.tpl` | 修改 | 精简依赖（移除 `database/sql`） |
+| `import.tpl` | 修改 | `"database/sql"` 改为条件引入（`{{if .containsSqlNull}}`），仅在存在 nullable 字段时包含 |
+| `import-no-cache.tpl` | 修改 | `"database/sql"` 改为条件引入（`{{if .containsSqlNull}}`），与 import.tpl 保持一致 |
 | `interface-find-one.tpl` | **重写** | 统一声明所有 12 个方法签名（无 Gorm 后缀） |
 | `interface-insert.tpl` | **清空** | 签名迁移到 interface-find-one.tpl |
 | `interface-update.tpl` | **清空** | 签名迁移到 interface-find-one.tpl |
@@ -224,6 +244,7 @@ go-zero/tools/goctl/
 | 功能 | 查询 API 从 2 个扩展到 5 个 | **重大** |
 | 功能 | 批量操作（InsertBatch/DeleteBatch/Save） | **重大** |
 | 功能 | JSON 标签自动生成 | 中等 |
+| 功能 | `database/sql` 智能 import 检测（`ContainsSqlNull()`） | 较小 |
 | 功能 | 结构化错误响应（ResponseError） | 中等 |
 | CLI | `goctl api go` 智能默认值 | 中等 |
 | 模板 | Handler 文件改为 `_gen.go` 后缀 | 较小 |

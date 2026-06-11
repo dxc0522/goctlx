@@ -1,7 +1,7 @@
 import (
 	"context"
-	"database/sql"
-	"errors"
+	{{if .containsSqlNull}}"database/sql"
+	{{end}}"errors"
 	"fmt"
 	{{if .time}}"time"
 	{{end}}{{if .containsPQ}}"github.com/lib/pq"

@@ -270,7 +270,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 	table.ignoreColumns = g.ignoreColumns
 
-	importsCode, err := genImports(table, withCache, in.ContainsTime())
+	importsCode, err := genImports(table, withCache, in.ContainsTime(), in.ContainsSqlNull())
 	if err != nil {
 		return "", err
 	}
