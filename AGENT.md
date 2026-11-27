@@ -81,9 +81,7 @@ bash compare/compare.sh
 
 ## 注意事项
 
-- **文档同步规则：** 每次项目逻辑变更时，必须同步更新以下两个文件：
-  - `GOCTLX_IMPROVEMENTS.md` — 记录相对上游 go-zero 的所有定制改进
-  - `README.md` — 面向用户的使用说明和功能介绍
+- **文档同步规则：** 项目逻辑变更时，同步更新 `README.md` 中相关的使用说明和功能介绍。
 - `vendor/` 目录已提交。修改 `go.mod` 依赖后需执行 `go mod vendor`。
 - 模板使用 Go `text/template` 语法。编辑模板前先确认对应 `gen*.go` 传入了哪些变量。
 - Model 模板中的 `hasField` 辅助函数已被有意移除，不要重新引入。

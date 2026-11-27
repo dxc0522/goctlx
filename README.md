@@ -25,6 +25,7 @@
 - **查询 API（6 个）：** `FindOne`（主键查询）、`FindOneByConditions`（条件首条）、`FindCount`（计数）、`FindAll`（全量）、`FindList`（分页）、`FindPageWithCount`（分页+总数）
 - **写入 API（6 个）：** `Insert`、`InsertBatch`（批量插入）、`Update`（全量更新）、`UpdateFields`（部分更新）、`Delete`（主键删除）、`DeleteBatch`（条件批量删除）
 - **写操作自动清缓存：** `Insert`/`InsertBatch`/`Update` 写入后自动清除主键和唯一索引缓存
+- **缓存过期：** `UpdateFields`、`Delete` 和 `DeleteBatch` 写入后的缓存依赖 TTL 过期
 - **统一错误处理：** 所有查询方法将 `gorm.ErrRecordNotFound` 映射为 `ErrNotFound`
 - **模板嵌入优先：** `pathx.LoadTemplate` 始终使用项目嵌入模板，`~/.goctl/` 目录不再被加载
 - **JSON 标签自动生成：** 每个字段自动添加 `json:"field_name,omitempty"`
@@ -40,7 +41,7 @@
 
 ### 其他
 
-- **结构化错误响应：** Handler 支持 `httpx2.ResponseError` 类型检测，可返回自定义状态码和结构化数据
+- **结构化错误响应：** Logic 可返回 `github.com/gchhotels/pkgx/httpx.NewErrorResponse` 创建的错误，由 `provide.ServerSetup` 注册的处理器转换为 HTTP 状态码和 JSON 响应
 - **服务启动：** 注册业务路由后，由 `pkgx` 的 `provide.ServerSetup(server, c.RestConf)` 安装共享中间件、注册 `/api/<服务名>/ping` 并启动服务
 
 ---
@@ -98,12 +99,6 @@ demo/
 ├── demo.api       # API 定义文件
 └── demo.go        # 入口 main.go
 ```
-
----
-
-## 📖 详细改进说明
-
-完整的相对上游 go-zero 的改进清单见 [GOCTLX_IMPROVEMENTS.md](GOCTLX_IMPROVEMENTS.md)。
 
 ---
 
