@@ -192,6 +192,24 @@ func parseTableList(tableValue []string) pattern {
 	return tablePattern
 }
 
+// migrationTableSuffixes lists table-name suffixes of DB migration tooling
+// tracking tables that should never be turned into models. A table is skipped
+// when its name ends with any of these suffixes (e.g. goose_db_version).
+var migrationTableSuffixes = []string{
+	"goose_db_version",
+}
+
+// isMigrationTable reports whether the given table is a migration-tracking
+// table (e.g. goose_db_version) that should be skipped during model generation.
+func isMigrationTable(table string) bool {
+	for _, suffix := range migrationTableSuffixes {
+		if strings.HasSuffix(table, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
 // PostgreSqlDataSource generates model code from datasource
 func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	migrationnotes.BeforeCommands(VarStringDir, VarStringStyle)
@@ -322,6 +340,10 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 
 	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
+		if isMigrationTable(item) {
+			continue
+		}
+
 		if !arg.tablePat.Match(item) {
 			continue
 		}
@@ -384,6 +406,10 @@ func fromPostgreSqlDataSource(arg pgDataSourceArg) error {
 
 	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
+		if isMigrationTable(item) {
+			continue
+		}
+
 		if !arg.tablePat.Match(item) {
 			continue
 		}

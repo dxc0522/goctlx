@@ -138,3 +138,23 @@ func Test_parseTableList(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	}
 }
+
+func TestIsMigrationTable(t *testing.T) {
+	tests := []struct {
+		name  string
+		table string
+		want  bool
+	}{
+		{"exact goose table", "goose_db_version", true},
+		{"prefixed goose table", "myapp_goose_db_version", true},
+		{"plain user table", "users", false},
+		{"plural is not the suffix", "goose_db_versions", false},
+		{"goose as prefix is not skipped", "goose_db_version_backup", false},
+		{"empty table name", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, isMigrationTable(tt.table))
+		})
+	}
+}

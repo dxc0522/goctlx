@@ -1,6 +1,8 @@
 package new
 
 import (
+	"bytes"
+	"html/template"
 	"os"
 	"path/filepath"
 	"testing"
@@ -202,4 +204,53 @@ service ` + tt.serviceName + `-api {
 			}
 		})
 	}
+}
+
+// TestCreateServiceCommand_NoApiSuffix locks in the requirement that a newly
+// created project carries no "-api" suffix: the rendered .api source declares
+// `service <name>`, and the generated etc config file is `etc/<name>.yaml`
+// with `Name: <name>`, while main.go references `etc/<name>.yaml`.
+func TestCreateServiceCommand_NoApiSuffix(t *testing.T) {
+	const serviceName = "hello"
+
+	tempDir, err := os.MkdirTemp("", "goctl-api-no-suffix-test-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	serviceDir := filepath.Join(tempDir, serviceName)
+	require.NoError(t, os.MkdirAll(serviceDir, 0755))
+
+	// Render the embedded api.tpl exactly as CreateServiceCommand does.
+	tpl := template.Must(template.New("template").Parse(apiTemplate))
+	var buf bytes.Buffer
+	require.NoError(t, tpl.Execute(&buf, map[string]string{
+		"name":    serviceName,
+		"handler": "Hello",
+	}))
+
+	// The .api source itself must not carry the -api suffix.
+	assert.Contains(t, buf.String(), "service hello {")
+	assert.NotContains(t, buf.String(), "service hello-api")
+
+	apiFile := filepath.Join(serviceDir, serviceName+".api")
+	require.NoError(t, os.WriteFile(apiFile, buf.Bytes(), 0644))
+
+	require.NoError(t, gogen.DoGenProjectWithModule(
+		apiFile, serviceDir, serviceName, config.DefaultFormat, false))
+
+	// etc config file must be <name>.yaml, not <name>-api.yaml.
+	assert.FileExists(t, filepath.Join(serviceDir, "etc", serviceName+".yaml"))
+	_, statErr := os.Stat(filepath.Join(serviceDir, "etc", serviceName+"-api.yaml"))
+	assert.True(t, os.IsNotExist(statErr), "etc/%s-api.yaml should not be generated", serviceName)
+
+	etcContent, err := os.ReadFile(filepath.Join(serviceDir, "etc", serviceName+".yaml"))
+	require.NoError(t, err)
+	assert.Contains(t, string(etcContent), "Name: hello")
+	assert.NotContains(t, string(etcContent), "hello-api")
+
+	// main.go must reference etc/<name>.yaml and be named <name>.go.
+	mainContent, err := os.ReadFile(filepath.Join(serviceDir, serviceName+".go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(mainContent), "etc/hello.yaml")
+	assert.NotContains(t, string(mainContent), "hello-api")
 }

@@ -8,8 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/rest"
+	"github.com/gchhotels/pkgx/provide"
 	{{.importPackages}}
 )
 
@@ -18,10 +17,8 @@ var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file"
 func main() {
 	flag.Parse()
 
-	conf.UseEnv()
-
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
@@ -29,11 +26,9 @@ func main() {
 	ctx, err := svc.NewServiceContext(c)
 	if err != nil {
 		fmt.Printf("NewServiceContext error: %v\n", err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	handler.RegisterHandlers(server, ctx)
-
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	server.Start()
+	provide.ServerSetup(server, c.RestConf)
 }

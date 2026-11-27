@@ -5,6 +5,8 @@ package {{.pkgName}}
 
 import (
     "context"
+    "net/http"
+    "net/http/httptest"
     "testing"
 
     {{.imports}}
@@ -14,7 +16,8 @@ import (
 
 func Test{{.logic}}_{{.function}}(t *testing.T) {
     c := config.Config{}
-    mockSvcCtx := svc.NewServiceContext(c)
+    mockSvcCtx, err := svc.NewServiceContext(c)
+    require.NoError(t, err)
     // init mock service context here
 
     tests := []struct {
@@ -58,8 +61,11 @@ func Test{{.logic}}_{{.function}}(t *testing.T) {
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             tt.setupMocks()
-            l := New{{.logic}}(tt.ctx, mockSvcCtx)
-            {{if .hasResponse}}resp, {{end}}err := l.{{.function}}({{if .hasRequest}}tt.req{{end}})
+            req := httptest.NewRequest(http.MethodGet, "/", nil).WithContext(tt.ctx)
+            var w http.ResponseWriter = httptest.NewRecorder()
+            l := New{{.logic}}(tt.ctx, mockSvcCtx, req, &w)
+            {{if .sseResponseType}}client := make(chan {{.sseResponseType}}, 16)
+            {{end}}{{if .hasResponse}}resp, {{end}}err := l.{{.function}}({{if .hasRequest}}tt.req{{end}}{{if .sseResponseType}}{{if .hasRequest}}, {{end}}client{{end}})
             if tt.wantErr {
                 assert.Error(t, err)
             } else {

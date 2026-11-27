@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"{{.projectPkg}}/internal/config"
 	"{{.projectPkg}}/internal/handler"
@@ -35,7 +34,8 @@ func TestServerIntegration(t *testing.T) {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
 
-	ctx := svc.NewServiceContext(c)
+	ctx, err := svc.NewServiceContext(c)
+	require.NoError(t, err)
 	handler.RegisterHandlers(server, ctx)
 
 	// Create serverless wrapper for testing
@@ -104,7 +104,8 @@ func TestServerLifecycle(t *testing.T) {
 	server := rest.MustNewServer(c.RestConf)
 
 	// Test server can start and stop without errors
-	ctx := svc.NewServiceContext(c)
+	ctx, err := svc.NewServiceContext(c)
+	require.NoError(t, err)
 	handler.RegisterHandlers(server, ctx)
 
 	// In a real integration test, you might start the server in a goroutine

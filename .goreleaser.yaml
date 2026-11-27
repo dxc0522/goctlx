@@ -1,0 +1,21 @@
+version: 2
+
+project_name: goctlx
+
+builds:
+  - main: .
+    binary: goctlx
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - formats: [zip]

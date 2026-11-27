@@ -19,7 +19,8 @@ import (
 func Test{{.HandlerName}}(t *testing.T) {
 	// new service context
 	c := config.Config{}
-	svcCtx := svc.NewServiceContext(c)
+	svcCtx, err := svc.NewServiceContext(c)
+	require.NoError(t, err)
     // init mock service context here
 
 	tests := []struct {

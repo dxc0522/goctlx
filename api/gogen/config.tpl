@@ -11,6 +11,9 @@ import (
 type Config struct {
 	rest.RestConf
 	AppMode string `json:",env=APP_MODE,default=LOCAL"`
+	Mysql struct {
+		DSN string `json:",env=MYSQL_DSN,optional"`
+	}
 	{{.auth}}
 	{{.jwtTrans}}
 }

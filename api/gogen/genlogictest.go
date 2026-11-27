@@ -35,21 +35,20 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 	}
 
 	imports := genLogicTestImports(route, rootPkg)
+	isSSE := group.GetAnnotation("sse") == "true"
+	hasResponse := len(route.ResponseTypeName()) > 0 && !isSSE
 	var responseString string
-	var returnString string
-	var requestString string
 	var requestType string
-	if len(route.ResponseTypeName()) > 0 {
+	if hasResponse {
 		resp := responseGoTypeName(route, typesPacket)
 		responseString = "(resp " + resp + ", err error)"
-		returnString = "return"
-	} else {
-		responseString = "error"
-		returnString = "return nil"
 	}
 	if len(route.RequestTypeName()) > 0 {
-		requestString = "req *" + requestGoTypeName(route, typesPacket)
 		requestType = requestGoTypeName(route, typesPacket)
+	}
+	var sseResponseType string
+	if isSSE {
+		sseResponseType = responseGoTypeName(route, typesPacket)
 	}
 
 	subDir := getLogicFolderPath(group, route)
@@ -62,20 +61,19 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 		templateFile:    logicTestTemplateFile,
 		builtinTemplate: logicTestTemplate,
 		data: map[string]any{
-			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
-			"imports":      imports,
-			"logic":        strings.Title(logic),
-			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-			"responseType": responseString,
-			"returnString": returnString,
-			"request":      requestString,
-			"hasRequest":   len(requestType) > 0,
-			"hasResponse":  len(route.ResponseTypeName()) > 0,
-			"requestType":  requestType,
-			"hasDoc":       len(route.JoinedDoc()) > 0,
-			"doc":          getDoc(route.JoinedDoc()),
-			"projectPkg":   projectPkg,
-			"version":      version.BuildVersion,
+			"pkgName":         subDir[strings.LastIndex(subDir, "/")+1:],
+			"imports":         imports,
+			"logic":           strings.Title(logic),
+			"function":        strings.Title(strings.TrimSuffix(logic, "Logic")),
+			"responseType":    responseString,
+			"hasRequest":      len(requestType) > 0,
+			"hasResponse":     hasResponse,
+			"sseResponseType": sseResponseType,
+			"requestType":     requestType,
+			"hasDoc":          len(route.JoinedDoc()) > 0,
+			"doc":             getDoc(route.JoinedDoc()),
+			"projectPkg":      projectPkg,
+			"version":         version.BuildVersion,
 		},
 	})
 }

@@ -36,7 +36,8 @@ func TestNewServiceContext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := tt.setup()
-			svcCtx := NewServiceContext(c)
+			svcCtx, err := NewServiceContext(c)
+			require.NoError(t, err)
 
 			// Basic assertions
 			require.NotNil(t, svcCtx)
@@ -49,7 +50,8 @@ func TestNewServiceContext(t *testing.T) {
 
 func TestServiceContext_Initialization(t *testing.T) {
 	c := config.Config{}
-	svcCtx := NewServiceContext(c)
+	svcCtx, err := NewServiceContext(c)
+	require.NoError(t, err)
 
 	// Verify service context is properly initialized
 	assert.NotNil(t, svcCtx)
